@@ -1,6 +1,10 @@
 """TUI screens."""
 
-# Screens will be implemented as needed
-# - MainScreen (already in app.py)
-# - HistoryScreen (for browsing history)
-# - AgentDetailScreen (for inspecting agents)
+from .agent_detail import AgentDetailScreen
+from .history import ConfirmScreen, HistoryScreen
+
+__all__ = [
+    "AgentDetailScreen",
+    "HistoryScreen",
+    "ConfirmScreen",
+]

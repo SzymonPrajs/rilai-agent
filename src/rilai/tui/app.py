@@ -211,7 +211,8 @@ class RilaiApp(App):
 
     def action_toggle_history(self) -> None:
         """Open history browser."""
-        self.notify("History browser - coming soon")
+        from rilai.tui.screens.history import HistoryScreen
+        self.push_screen(HistoryScreen())
 
     def action_focus_input(self) -> None:
         """Focus the chat input."""
@@ -262,6 +263,11 @@ class RilaiApp(App):
         """Handle proactive message from daemon."""
         if not self.quiet_mode and self._chat_panel:
             self._chat_panel.add_message("assistant", message, urgency=urgency)
+
+    def open_agent_detail(self, agent_id: str) -> None:
+        """Open the agent detail screen for a specific agent."""
+        from rilai.tui.screens.agent_detail import AgentDetailScreen
+        self.push_screen(AgentDetailScreen(agent_id))
 
 
 def run():

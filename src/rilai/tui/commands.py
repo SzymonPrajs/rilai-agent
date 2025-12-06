@@ -3,8 +3,8 @@
 All CLI commands accessible via `/` prefix in the TUI.
 """
 
-from datetime import datetime
-from typing import TYPE_CHECKING, Any, Awaitable, Callable
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from rilai.tui.app import RilaiApp
@@ -36,6 +36,7 @@ async def cmd_help(app: "RilaiApp", args: str) -> None:
         "- `/clear` - Clear current session",
         "- `/clear all` - Clear all data",
         "- `/status` - Show system status",
+        "- `/history [n]` - Show last n messages",
         "- `/query agent-calls` - Show recent agent activity",
         "- `/query stats` - Show statistics",
         "- `/export json` - Export conversation as JSON",
@@ -69,10 +70,8 @@ async def cmd_clear(app: "RilaiApp", args: str) -> None:
 @command("status")
 async def cmd_status(app: "RilaiApp", args: str) -> None:
     """Show system status."""
-    from rilai.config import get_config
     from rilai.observability import get_store
 
-    config = get_config()
     store = get_store()
 
     daemon_status = "Running" if app.daemon_running else "Stopped"
@@ -85,8 +84,8 @@ async def cmd_status(app: "RilaiApp", args: str) -> None:
         "",
         f"- Daemon: {daemon_status}",
         f"- Session: `{session_id[:8]}...`" if session_id != "None" else "- Session: None",
-        f"- Agencies: 10 configured",
-        f"- Agents: 49 loaded",
+        "- Agencies: 10 configured",
+        "- Agents: 49 loaded",
         "",
         "**Last 24h Stats**",
         f"- Turns: {stats.get('turns', 0)}",
@@ -228,6 +227,46 @@ async def cmd_quiet(app: "RilaiApp", args: str) -> None:
     app.toggle_quiet_mode()
     mode = "enabled" if app.quiet_mode else "disabled"
     app.show_system_message(f"Quiet mode {mode}. Proactive messages will be {'suppressed' if app.quiet_mode else 'shown'}.")
+
+
+@command("history")
+async def cmd_history(app: "RilaiApp", args: str) -> None:
+    """Show conversation history."""
+    from rilai.observability import get_store
+
+    store = get_store()
+    limit = 20
+
+    # Parse optional limit argument
+    if args.strip():
+        try:
+            limit = int(args.strip())
+        except ValueError:
+            pass
+
+    history = store.get_conversation_history(limit=limit)
+
+    if not history:
+        app.show_system_message("No conversation history.")
+        return
+
+    lines = [f"**Conversation History** (last {len(history)} messages)", ""]
+
+    for msg in history:
+        role = msg.get("role", "unknown")
+        content = msg.get("content", "")
+        # Truncate long messages
+        if len(content) > 100:
+            content = content[:100] + "..."
+
+        if role == "user":
+            lines.append(f"**You**: {content}")
+        elif role == "assistant":
+            lines.append(f"**Rilai**: {content}")
+        else:
+            lines.append(f"**{role}**: {content}")
+
+    app.show_system_message("\n".join(lines))
 
 
 async def handle_command(app: "RilaiApp", text: str) -> bool:
