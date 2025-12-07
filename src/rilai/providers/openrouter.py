@@ -70,6 +70,8 @@ GROQ_PROVIDER_MODELS = [
     "meta-llama/llama-3.1-8b-instruct",
     "meta-llama/llama-3.3-70b-instruct",
     "meta-llama/llama-3.1-70b-instruct",
+    "openai/gpt-oss-120b",
+    "openai/gpt-oss-20b",
 ]
 
 
