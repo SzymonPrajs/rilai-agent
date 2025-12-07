@@ -66,11 +66,14 @@ class Synthesizer:
         reasoning_effort = config.get_reasoning_effort("council_synthesis")
 
         thinking = ""
+        # Build the user message with the actual user input prominently displayed
+        user_message = self._build_user_message(user_input, collected)
+
         try:
             response = await openrouter.complete(
                 messages=[
                     Message(role="system", content=prompt),
-                    Message(role="user", content="What is your decision?"),
+                    Message(role="user", content=user_message),
                 ],
                 model=config.get_model("small"),
                 reasoning_effort=reasoning_effort,
@@ -126,26 +129,24 @@ class Synthesizer:
         collected: CollectedAssessments,
         context: WorkingMemoryView,
     ) -> str:
-        """Build the full synthesis prompt."""
-        agent_observations = self._format_agent_observations(collected)
+        """Build the system prompt for synthesis."""
         history = self._format_history(context.conversation_history)
 
         return f"""{self.system_prompt}
-
-## Agent Observations
-
-{agent_observations}
 
 ## Conversation Context
 
 Recent messages:
 {history}
 
-## Current Input
+## Your Task
 
-The user said: {user_input}
+You will receive the user's input and agent observations in the next message.
+Your job is to synthesize those observations into a JSON decision.
 
-## Your Decision
+CRITICAL: When agents provide good content (especially execution/general_responder),
+use their content as key_points. Never output "unable to formulate" when agents
+have provided useful responses.
 
 First, show your thinking in <thinking> tags.
 Then respond with JSON:
@@ -164,6 +165,24 @@ Then respond with JSON:
 }}
 
 If speak=false, omit the speech_act field."""
+
+    def _build_user_message(self, user_input: str, collected: CollectedAssessments) -> str:
+        """Build the user message with the actual input and agent observations.
+
+        This puts the user's actual question/input prominently in the user role,
+        not buried in the system prompt, so the LLM clearly sees what to respond to.
+        """
+        agent_observations = self._format_agent_observations(collected)
+
+        return f"""The user said: "{user_input}"
+
+Here are the agent observations from my inner council:
+
+{agent_observations}
+
+Based on these observations and the user's input, provide your JSON decision now.
+Remember: Use the agent content (especially from general_responder) as key_points.
+Do NOT say "unable to formulate" when agents have provided good content."""
 
     def _format_agent_observations(self, collected: CollectedAssessments) -> str:
         """Format agent observations for the prompt, filtering quiet outputs."""
