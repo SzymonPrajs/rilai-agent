@@ -12,9 +12,9 @@ from textual.widgets import Static
 class ModulatorBar(Static):
     """A single modulator display with progress bar."""
 
-    def __init__(self, name: str, value: float = 0.0, **kwargs):
+    def __init__(self, label: str, value: float = 0.0, **kwargs):
         super().__init__(**kwargs)
-        self.name = name
+        self._label = label
         self._value = value
 
     def set_value(self, value: float) -> None:
@@ -38,7 +38,7 @@ class ModulatorBar(Static):
             style = "red"
 
         text = Text()
-        text.append(f"{self.name:<12}", style="bold")
+        text.append(f"{self._label:<12}", style="bold")
         text.append(" [")
         text.append("█" * filled, style=style)
         text.append("░" * empty, style="dim")

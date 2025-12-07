@@ -137,8 +137,8 @@ class ChatInput(Input):
         "quiet",
     ]
 
-    class Submitted(Message):
-        """Message sent when input is submitted."""
+    class ChatSubmitted(Message):
+        """Message sent when chat input is submitted."""
 
         def __init__(self, value: str, is_command: bool = False):
             self.value = value
@@ -153,7 +153,7 @@ class ChatInput(Input):
             return
 
         is_command = value.startswith("/")
-        self.post_message(self.Submitted(value, is_command))
+        self.post_message(self.ChatSubmitted(value, is_command))
         self.value = ""
 
     def action_autocomplete(self) -> None:

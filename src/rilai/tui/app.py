@@ -125,8 +125,8 @@ class RilaiApp(App):
             "Welcome to Rilai v2. Type a message or use `/help` for commands."
         )
 
-    @on(ChatInput.Submitted)
-    async def on_chat_submitted(self, event: ChatInput.Submitted) -> None:
+    @on(ChatInput.ChatSubmitted)
+    async def on_chat_submitted(self, event: ChatInput.ChatSubmitted) -> None:
         """Handle chat input submission."""
         if event.is_command:
             await handle_command(self, event.value)
