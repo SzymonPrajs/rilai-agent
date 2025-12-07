@@ -15,6 +15,7 @@ from textual import on
 from textual.app import ComposeResult
 from textual.containers import ScrollableContainer, Vertical
 from textual.message import Message
+from textual.suggester import Suggester
 from textual.widgets import Input, Static
 
 if TYPE_CHECKING:
@@ -108,19 +109,8 @@ class MessageLog(ScrollableContainer):
         self._messages.clear()
 
 
-class ChatInput(Input):
-    """Chat input with slash command autocomplete."""
-
-    DEFAULT_CSS = """
-    ChatInput {
-        dock: bottom;
-        margin: 0 1;
-    }
-    """
-
-    BINDINGS = [
-        ("tab", "autocomplete", "Autocomplete"),
-    ]
+class SlashCommandSuggester(Suggester):
+    """Suggester for slash commands."""
 
     # Available slash commands
     COMMANDS = [
@@ -136,6 +126,40 @@ class ChatInput(Input):
         "config",
         "quiet",
     ]
+
+    async def get_suggestion(self, value: str) -> str | None:
+        """Return a suggestion for the current input value."""
+        if not value.startswith("/"):
+            return None
+
+        prefix = value[1:].lower()
+        if not prefix:
+            # Show first command when just "/" is typed
+            return f"/{self.COMMANDS[0]}"
+
+        for cmd in self.COMMANDS:
+            if cmd.startswith(prefix) and cmd != prefix:
+                return f"/{cmd}"
+
+        return None
+
+
+class ChatInput(Input):
+    """Chat input with slash command autocomplete."""
+
+    DEFAULT_CSS = """
+    ChatInput {
+        dock: bottom;
+        margin: 0 1;
+    }
+    """
+
+    BINDINGS = [
+        ("tab", "autocomplete", "Autocomplete"),
+    ]
+
+    def __init__(self, **kwargs):
+        super().__init__(suggester=SlashCommandSuggester(case_sensitive=False), **kwargs)
 
     class ChatSubmitted(Message):
         """Message sent when chat input is submitted."""
@@ -157,12 +181,13 @@ class ChatInput(Input):
         self.value = ""
 
     def action_autocomplete(self) -> None:
-        """Autocomplete slash commands."""
+        """Autocomplete slash commands (Tab accepts suggestion or shows matches)."""
         if not self.value.startswith("/"):
             return
 
         prefix = self.value[1:].lower()
-        matches = [cmd for cmd in self.COMMANDS if cmd.startswith(prefix)]
+        commands = SlashCommandSuggester.COMMANDS
+        matches = [cmd for cmd in commands if cmd.startswith(prefix)]
 
         if len(matches) == 1:
             self.value = f"/{matches[0]} "
