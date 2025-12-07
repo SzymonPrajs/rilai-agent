@@ -174,9 +174,8 @@ class LLMAgent(BaseAgent):
             conversation_history=list(context.conversation_history),
         )
 
-        # Determine if we should use thinking model
-        use_thinking = context.deliberation is not None and config.DELIBERATION_USE_THINKING
-        reasoning_effort = config.get_reasoning_effort("agent_assess") if use_thinking else None
+        # All models are thinking models - always use reasoning
+        reasoning_effort = config.get_reasoning_effort("agent_assess")
 
         try:
             response: ModelResponse = await openrouter.complete(
@@ -184,7 +183,7 @@ class LLMAgent(BaseAgent):
                     Message(role="system", content=prompt),
                     Message(role="user", content=f"The user said: {event.content}\n\nWhat do you observe?"),
                 ],
-                model=config.get_model("small", thinking=use_thinking),
+                model=config.get_model("small"),
                 temperature=0.3,
                 reasoning_effort=reasoning_effort,
                 capture_request=True,

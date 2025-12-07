@@ -72,7 +72,7 @@ class Synthesizer:
                     Message(role="system", content=prompt),
                     Message(role="user", content="What is your decision?"),
                 ],
-                model=config.get_model("medium", thinking=True),
+                model=config.get_model("medium"),
                 temperature=0.7,
                 reasoning_effort=reasoning_effort,
                 capture_request=True,

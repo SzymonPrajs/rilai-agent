@@ -15,18 +15,11 @@ OPENROUTER_API_KEY = "sk-or-v1-..."  # Get from https://openrouter.ai/keys
 # Models
 # =============================================================================
 
-# Standard models (for agents and council)
+# All models (treated as thinking models)
 MODELS = {
     "small": "meta-llama/llama-3.1-8b-instruct",      # Fast agent assessments
     "medium": "meta-llama/llama-3.3-70b-instruct",    # Council synthesis
     "large": "deepseek/deepseek-chat",                # Deep reasoning tasks
-}
-
-# Thinking model variants (for deliberation, complex reasoning)
-THINKING_MODELS = {
-    "small": "deepseek/deepseek-r1-distill-qwen-7b",
-    "medium": "anthropic/claude-3.5-sonnet:thinking",
-    "large": "deepseek/deepseek-r1",
 }
 
 # Reasoning effort per context
@@ -57,7 +50,6 @@ DAEMON_URGENCY_THRESHOLD = "high"     # Minimum urgency to proactively speak
 
 DELIBERATION_MAX_ROUNDS = 3           # Maximum deliberation rounds
 DELIBERATION_CONSENSUS_THRESHOLD = 0.8  # Consensus level to trigger early exit
-DELIBERATION_USE_THINKING = True      # Use thinking models for deliberation
 
 # =============================================================================
 # Performance

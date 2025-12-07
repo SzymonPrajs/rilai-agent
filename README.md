@@ -73,16 +73,11 @@ Edit `config.py` (copy from `config.example.py`):
 ```python
 OPENROUTER_API_KEY = "sk-or-v1-..."
 
+# All models are treated as thinking models
 MODELS = {
     "small": "meta-llama/llama-3.1-8b-instruct",
     "medium": "meta-llama/llama-3.3-70b-instruct",
     "large": "deepseek/deepseek-chat",
-}
-
-THINKING_MODELS = {
-    "small": "deepseek/deepseek-r1-distill-qwen-7b",
-    "medium": "anthropic/claude-3.5-sonnet:thinking",
-    "large": "deepseek/deepseek-r1",
 }
 ```
 

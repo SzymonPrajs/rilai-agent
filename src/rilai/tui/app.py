@@ -12,6 +12,9 @@ from textual.widgets import Footer, Header, Static
 from .commands import handle_command
 from .widgets import AgencyStatus, ChatInput, ChatPanel, ModulatorsPanel, ThinkingPanel
 
+from rilai.core.engine import Engine
+from rilai.core.events import event_bus, Event, EventType
+
 
 class RilaiApp(App):
     """Rilai v2 Terminal User Interface."""
@@ -114,8 +117,17 @@ class RilaiApp(App):
 
         yield Footer()
 
-    def on_mount(self) -> None:
+    async def on_mount(self) -> None:
         """Handle app mount."""
+        # Initialize and start engine
+        self._engine = Engine()
+        await self._engine.start()
+
+        # Subscribe to events for real-time UI updates
+        event_bus.subscribe(EventType.AGENCY_STARTED, self._handle_agency_started)
+        event_bus.subscribe(EventType.AGENCY_COMPLETED, self._handle_agency_completed)
+        event_bus.subscribe(EventType.AGENT_COMPLETED, self._handle_agent_completed)
+
         # Focus the chat input
         if self._chat_panel:
             self._chat_panel.focus_input()
@@ -147,9 +159,12 @@ class RilaiApp(App):
             self._agency_status.reset_all()
 
         try:
-            # TODO: Wire up to actual engine
-            # For now, just echo back
-            await self._simulate_processing(message)
+            # Process through the engine
+            response = await self._engine.process_message(message)
+
+            # Display response
+            if self._chat_panel and response:
+                self._chat_panel.add_message("assistant", response)
 
         except Exception as e:
             self.show_system_message(f"Error: {e}")
@@ -268,6 +283,32 @@ class RilaiApp(App):
         """Open the agent detail screen for a specific agent."""
         from rilai.tui.screens.agent_detail import AgentDetailScreen
         self.push_screen(AgentDetailScreen(agent_id))
+
+    # Async event bus handlers (wrap the sync methods above)
+
+    async def _handle_agency_started(self, event: Event) -> None:
+        """Handle AGENCY_STARTED event from event bus."""
+        agency_id = event.data.get("agency_id", "")
+        self.on_agency_started(agency_id)
+
+    async def _handle_agency_completed(self, event: Event) -> None:
+        """Handle AGENCY_COMPLETED event from event bus."""
+        agency_id = event.data.get("agency_id", "")
+        time_ms = event.data.get("time_ms", 0)
+        u_max = event.data.get("u_max", 0)
+        self.on_agency_completed(agency_id, time_ms, u_max)
+
+    async def _handle_agent_completed(self, event: Event) -> None:
+        """Handle AGENT_COMPLETED event from event bus."""
+        agent_id = event.data.get("agent_id", "")
+        thinking = event.data.get("thinking", "")
+        if thinking:
+            self.on_thinking_received(agent_id, thinking)
+
+    async def on_unmount(self) -> None:
+        """Handle app unmount - cleanup engine."""
+        if self._engine:
+            await self._engine.stop()
 
 
 def run():

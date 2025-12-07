@@ -81,13 +81,12 @@ class Config:
 
         Args:
             tier: One of "small", "medium", "large"
-            thinking: Whether to use thinking model variant
+            thinking: Ignored - all models are now thinking models
 
         Returns:
             Model identifier string
         """
-        models = self.THINKING_MODELS if thinking else self.MODELS
-        return models.get(tier, self.MODELS["small"])
+        return self.MODELS.get(tier, self.MODELS["small"])
 
     def get_reasoning_effort(self, context: str) -> str:
         """Get reasoning effort level for a context.
@@ -109,9 +108,6 @@ class Config:
 
         if not isinstance(self.MODELS, dict):
             errors.append("MODELS must be a dict")
-
-        if not isinstance(self.THINKING_MODELS, dict):
-            errors.append("THINKING_MODELS must be a dict")
 
         for tier in ["small", "medium", "large"]:
             if tier not in self.MODELS:

@@ -116,13 +116,9 @@ def cmd_status(args: argparse.Namespace) -> int:
     else:
         print("\nConfiguration: OK")
 
-    # Models
+    # Models (all treated as thinking models)
     print("\nModels:")
     for tier, model in config.MODELS.items():
-        print(f"  {tier}: {model}")
-
-    print("\nThinking Models:")
-    for tier, model in config.THINKING_MODELS.items():
         print(f"  {tier}: {model}")
 
     # Agencies
