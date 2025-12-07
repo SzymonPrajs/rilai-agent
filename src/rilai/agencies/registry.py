@@ -161,6 +161,7 @@ AGENCY_CONFIGS: dict[str, AgencyConfig] = {
             AgentConfig(name="script_runner"),
             AgentConfig(name="context_manager"),
             AgentConfig(name="output_filter"),
+            AgentConfig(name="general_responder"),
         ],
         domain_marker="has_action_markers",
     ),

@@ -42,6 +42,9 @@ Output "Quiet. [U:0 C:0]" when:
 - You have nothing meaningful to add
 - Other agents are better suited to respond
 
+If the user is making a direct request and your domain can help even lightly,
+prefer a low-urgency contribution (U:1) over going Quiet.
+
 ## Important
 
 - Be concise - your output goes to a council, not a user

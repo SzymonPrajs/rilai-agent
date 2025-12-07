@@ -166,18 +166,27 @@ Then respond with JSON:
 If speak=false, omit the speech_act field."""
 
     def _format_agent_observations(self, collected: CollectedAssessments) -> str:
-        """Format agent observations for the prompt."""
+        """Format agent observations for the prompt, filtering quiet outputs."""
         if not collected.all_agents:
             return "(No agent observations available)"
 
         lines = []
         for agent in collected.all_agents:
+            # Skip Quiet agents with zero salience
+            is_quiet = agent.output.strip().lower().startswith("quiet")
+            if is_quiet and agent.salience and agent.salience.urgency == 0 and agent.salience.confidence == 0:
+                continue
+
             agent_name = (
                 agent.agent_id.split(".")[-1] if "." in agent.agent_id else agent.agent_id
             )
-            lines.append(f"- **{agent.agency_id}/{agent_name}**: {agent.output}")
+            # Include salience for context
+            salience_str = ""
+            if agent.salience:
+                salience_str = f" [U:{agent.salience.urgency} C:{agent.salience.confidence}]"
+            lines.append(f"- **{agent.agency_id}/{agent_name}**{salience_str}: {agent.output}")
 
-        return "\n".join(lines)
+        return "\n".join(lines) if lines else "(No salient agent observations; respond to the user directly.)"
 
     def _format_history(self, history: list[dict]) -> str:
         """Format conversation history."""

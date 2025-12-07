@@ -59,6 +59,12 @@ Recent conversation:
 ## Deliberation Context
 {context.deliberation.format_for_prompt()}
 """
+        # Add task instruction
+        prompt += """
+## Task
+Given your role contract, provide your internal assessment.
+If irrelevant, output exactly: Quiet. [U:0 C:0]
+"""
         return prompt
 
     def _format_history(self, history: list[dict]) -> str:
@@ -181,7 +187,7 @@ class LLMAgent(BaseAgent):
             response: ModelResponse = await openrouter.complete(
                 messages=[
                     Message(role="system", content=prompt),
-                    Message(role="user", content=f"The user said: {event.content}\n\nWhat do you observe?"),
+                    Message(role="user", content=event.content),
                 ],
                 model=config.get_model("small"),
                 reasoning_effort=reasoning_effort,
