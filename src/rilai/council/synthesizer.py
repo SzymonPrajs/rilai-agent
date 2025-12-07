@@ -73,7 +73,6 @@ class Synthesizer:
                     Message(role="user", content="What is your decision?"),
                 ],
                 model=config.get_model("small"),
-                temperature=0.7,
                 reasoning_effort=reasoning_effort,
                 capture_request=True,
             )

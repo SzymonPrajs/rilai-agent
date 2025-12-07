@@ -60,7 +60,6 @@ class Voice:
                     Message(role="user", content="Render this speech act."),
                 ],
                 model=config.get_model("small"),
-                temperature=0.3,
             )
             message = response.content.strip()
 

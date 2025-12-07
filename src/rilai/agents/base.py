@@ -184,7 +184,6 @@ class LLMAgent(BaseAgent):
                     Message(role="user", content=f"The user said: {event.content}\n\nWhat do you observe?"),
                 ],
                 model=config.get_model("small"),
-                temperature=0.3,
                 reasoning_effort=reasoning_effort,
                 capture_request=True,
             )

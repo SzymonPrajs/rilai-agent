@@ -204,10 +204,47 @@ class DeliberationEngine:
             deliberation=delib_context,
         )
 
+        # Create agent-level event callbacks for deliberation tracing
+        round_num = delib_context.round
+
+        async def on_agent_start(agent_id: str) -> None:
+            await event_bus.emit(
+                Event(
+                    EventType.AGENT_STARTED,
+                    {"agent_id": agent_id, "deliberation_round": round_num},
+                )
+            )
+
+        async def on_agent_complete(agent_id: str, result) -> None:
+            if isinstance(result, Exception):
+                return
+            # Extract thinking from trace
+            thinking = ""
+            if hasattr(result, "trace") and result.trace:
+                thinking = result.trace.thinking or ""
+            await event_bus.emit(
+                Event(
+                    EventType.AGENT_COMPLETED,
+                    {
+                        "agent_id": agent_id,
+                        "thinking": thinking,
+                        "voice": getattr(result, "voice", ""),
+                        "deliberation_round": round_num,
+                    },
+                )
+            )
+
         # Run all agencies in parallel
         tasks = []
         for agency in self.agencies.values():
-            tasks.append(agency.assess(event, context))
+            tasks.append(
+                agency.assess(
+                    event,
+                    context,
+                    on_agent_start=on_agent_start,
+                    on_agent_complete=on_agent_complete,
+                )
+            )
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
 

@@ -152,7 +152,8 @@ class AgencyRunner:
             await on_agency_start(agency.agency_id)
             tasks.append(
                 self._run_agency_safe(
-                    agency, event, context, event_sig, modulators, activation_states
+                    agency, event, context, event_sig, modulators, activation_states,
+                    emit_agent_events=True,
                 )
             )
 
@@ -198,8 +199,43 @@ class AgencyRunner:
         event_sig: EventSignature | None = None,
         modulators: "GlobalModulators | None" = None,
         activation_states: dict[str, "AgentActivationState"] | None = None,
+        emit_agent_events: bool = False,
     ) -> AgencyAssessment | Exception:
         """Run a single agency with timeout and error handling."""
+        # Create agent-level event callbacks if tracing enabled
+        on_agent_start = None
+        on_agent_complete = None
+
+        if emit_agent_events:
+            async def on_agent_start(agent_id: str) -> None:
+                await event_bus.emit(
+                    Event(EventType.AGENT_STARTED, {"agent_id": agent_id})
+                )
+
+            async def on_agent_complete(agent_id: str, result) -> None:
+                if isinstance(result, Exception):
+                    await event_bus.emit(
+                        Event(
+                            EventType.ERROR,
+                            {"agent_id": agent_id, "error": str(result)},
+                        )
+                    )
+                else:
+                    # Extract thinking from trace
+                    thinking = ""
+                    if hasattr(result, "trace") and result.trace:
+                        thinking = result.trace.thinking or ""
+                    await event_bus.emit(
+                        Event(
+                            EventType.AGENT_COMPLETED,
+                            {
+                                "agent_id": agent_id,
+                                "thinking": thinking,
+                                "voice": getattr(result, "voice", ""),
+                            },
+                        )
+                    )
+
         try:
             return await asyncio.wait_for(
                 agency.assess(
@@ -208,6 +244,8 @@ class AgencyRunner:
                     event_sig=event_sig,
                     modulators=modulators,
                     activation_states=activation_states,
+                    on_agent_start=on_agent_start,
+                    on_agent_complete=on_agent_complete,
                 ),
                 timeout=self.timeout_ms / 1000,
             )

@@ -65,11 +65,27 @@ THINKING_MODEL_PATTERNS = [
     "qwq",  # Qwen QwQ
 ]
 
+# Models that should use Groq as provider (fast inference)
+GROQ_PROVIDER_MODELS = [
+    "meta-llama/llama-3.1-8b-instruct",
+    "meta-llama/llama-3.3-70b-instruct",
+    "meta-llama/llama-3.1-70b-instruct",
+]
+
 
 def is_thinking_model(model: str) -> bool:
     """Check if a model supports native reasoning tokens."""
     model_lower = model.lower()
     return any(pattern in model_lower for pattern in THINKING_MODEL_PATTERNS)
+
+
+def get_preferred_provider(model: str) -> str | None:
+    """Get preferred provider for a model, if any."""
+    model_lower = model.lower()
+    for groq_model in GROQ_PROVIDER_MODELS:
+        if groq_model.lower() in model_lower or model_lower in groq_model.lower():
+            return "Groq"
+    return None
 
 
 class OpenRouterClient:
@@ -144,6 +160,11 @@ class OpenRouterClient:
             "messages": message_dicts,
             "temperature": temperature,
         }
+
+        # Add provider preference if available (e.g., Groq for llama models)
+        preferred_provider = get_preferred_provider(model)
+        if preferred_provider:
+            payload["provider"] = {"order": [preferred_provider]}
 
         if max_tokens:
             payload["max_tokens"] = max_tokens
@@ -241,12 +262,17 @@ class OpenRouterClient:
         config = get_config()
         model = model or config.MODELS["small"]
 
-        payload = {
+        payload: dict[str, Any] = {
             "model": model,
             "messages": [{"role": m.role, "content": m.content} for m in messages],
             "temperature": temperature,
             "stream": True,
         }
+
+        # Add provider preference if available (e.g., Groq for llama models)
+        preferred_provider = get_preferred_provider(model)
+        if preferred_provider:
+            payload["provider"] = {"order": [preferred_provider]}
 
         async with client.stream("POST", "/chat/completions", json=payload) as response:
             response.raise_for_status()

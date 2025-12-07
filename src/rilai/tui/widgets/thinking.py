@@ -13,10 +13,19 @@ from textual.widgets import Static
 class ThinkingEntry(Static):
     """A single thinking entry."""
 
-    def __init__(self, agent_id: str, thinking: str, **kwargs):
+    def __init__(
+        self,
+        agent_id: str,
+        thinking: str,
+        voice: str = "",
+        deliberation_round: int | None = None,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
         self.agent_id = agent_id
         self.thinking = thinking
+        self.voice = voice
+        self.deliberation_round = deliberation_round
 
     def compose(self) -> ComposeResult:
         """Render the thinking entry."""
@@ -27,14 +36,27 @@ class ThinkingEntry(Static):
         else:
             header = self.agent_id
 
+        # Add round indicator if in deliberation
+        if self.deliberation_round is not None:
+            header = f"[R{self.deliberation_round}] {header}"
+
         yield Static(Text(f"▸ {header}", style="bold cyan"), classes="thinking-header")
 
-        # Truncate long thinking
-        content = self.thinking
-        if len(content) > 500:
-            content = content[:500] + "..."
+        # Show voice (what the agent said) - this is the important part
+        if self.voice:
+            voice_content = self.voice
+            if len(voice_content) > 300:
+                voice_content = voice_content[:300] + "..."
+            yield Static(voice_content, classes="thinking-voice")
 
-        yield Static(content, classes="thinking-content")
+        # Truncate long thinking
+        if self.thinking:
+            content = self.thinking
+            if len(content) > 500:
+                content = content[:500] + "..."
+            yield Static(
+                Text(f"💭 {content}", style="dim"), classes="thinking-content"
+            )
 
 
 class ThinkingLog(ScrollableContainer):
@@ -56,6 +78,11 @@ class ThinkingLog(ScrollableContainer):
         margin-bottom: 0;
     }
 
+    ThinkingLog .thinking-voice {
+        padding-left: 2;
+        color: $text;
+    }
+
     ThinkingLog .thinking-content {
         padding-left: 2;
         color: $text-muted;
@@ -66,9 +93,15 @@ class ThinkingLog(ScrollableContainer):
         super().__init__(**kwargs)
         self._entries: list[ThinkingEntry] = []
 
-    def add_entry(self, agent_id: str, thinking: str) -> None:
+    def add_entry(
+        self,
+        agent_id: str,
+        thinking: str,
+        voice: str = "",
+        deliberation_round: int | None = None,
+    ) -> None:
         """Add a thinking entry."""
-        entry = ThinkingEntry(agent_id, thinking)
+        entry = ThinkingEntry(agent_id, thinking, voice, deliberation_round)
         self._entries.append(entry)
 
         # Keep only last 20 entries
@@ -121,10 +154,16 @@ class ThinkingPanel(Vertical):
         self._log = ThinkingLog()
         yield self._log
 
-    def add_thinking(self, agent_id: str, thinking: str) -> None:
+    def add_thinking(
+        self,
+        agent_id: str,
+        thinking: str,
+        voice: str = "",
+        deliberation_round: int | None = None,
+    ) -> None:
         """Add a thinking entry."""
         if self._log:
-            self._log.add_entry(agent_id, thinking)
+            self._log.add_entry(agent_id, thinking, voice, deliberation_round)
             self._last_agent = agent_id
             self._last_thinking = thinking
 

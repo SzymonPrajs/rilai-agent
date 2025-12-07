@@ -269,10 +269,12 @@ class RilaiApp(App):
         if self._modulators:
             self._modulators.update_from_dict(modulators)
 
-    def on_thinking_received(self, agent_id: str, thinking: str) -> None:
+    def on_thinking_received(
+        self, agent_id: str, thinking: str, voice: str = "", deliberation_round: int | None = None
+    ) -> None:
         """Handle thinking received event."""
         if self._thinking:
-            self._thinking.add_thinking(agent_id, thinking)
+            self._thinking.add_thinking(agent_id, thinking, voice, deliberation_round)
 
     def on_proactive_message(self, message: str, urgency: str) -> None:
         """Handle proactive message from daemon."""
@@ -302,8 +304,10 @@ class RilaiApp(App):
         """Handle AGENT_COMPLETED event from event bus."""
         agent_id = event.data.get("agent_id", "")
         thinking = event.data.get("thinking", "")
-        if thinking:
-            self.on_thinking_received(agent_id, thinking)
+        voice = event.data.get("voice", "")
+        deliberation_round = event.data.get("deliberation_round")
+        if thinking or voice:
+            self.on_thinking_received(agent_id, thinking, voice, deliberation_round)
 
     async def on_unmount(self) -> None:
         """Handle app unmount - cleanup engine."""
