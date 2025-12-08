@@ -99,11 +99,11 @@ class Episode:
     turns: list[SpeechTurn]  # Ordered speech turns
     topic_tags: list[str] = field(default_factory=list)
     intensity: float = 0.0  # 0-1, based on emotional keywords/energy
-    boundary_type: Literal["silence", "topic", "explicit", "time"] = "silence"
+    boundary_type: Literal["silence", "topic", "explicit", "time", "silence_gap", "channel_change", "max_duration", "flush"] = "silence"
 
     # Metadata
     session_id: str = ""
-    source: Literal["mic", "replay"] = "mic"
+    source: Literal["mic", "replay", "synthetic"] = "mic"
 
     @property
     def duration_ms(self) -> int:
@@ -172,9 +172,9 @@ class Episode:
     def create(
         cls,
         turns: list[SpeechTurn],
-        boundary_type: Literal["silence", "topic", "explicit", "time"] = "silence",
+        boundary_type: Literal["silence", "topic", "explicit", "time", "silence_gap", "channel_change", "max_duration", "flush"] = "silence",
         session_id: str = "",
-        source: Literal["mic", "replay"] = "mic",
+        source: Literal["mic", "replay", "synthetic"] = "mic",
     ) -> "Episode":
         """Create a new episode from turns."""
         if not turns:

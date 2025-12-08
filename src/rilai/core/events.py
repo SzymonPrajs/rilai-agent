@@ -13,11 +13,63 @@ from typing import Any, Callable, Coroutine
 class EventType(Enum):
     """Types of events in the system."""
 
-    # User input events
-    USER_MESSAGE = auto()
-    USER_COMMAND = auto()
+    # ==========================================================================
+    # CANONICAL INPUT EVENTS (new unified interface)
+    # ==========================================================================
 
-    # Processing events
+    # Ambient listening - THE canonical input event
+    UTTERANCE = auto()  # UtteranceEvent from any adapter (audio/synthetic)
+
+    # Explicit user interaction (distinct from ambient)
+    USER_QUERY = auto()  # UserQueryEvent - user explicitly asks something
+
+    # ==========================================================================
+    # PROCESSING PIPELINE EVENTS
+    # ==========================================================================
+
+    # Episode lifecycle
+    EPISODE_STARTED = auto()
+    EPISODE_BUILT = auto()  # Episode ready for processing
+    EPISODE_COMPLETED = auto()
+    EPISODE_BOUNDARY = auto()
+
+    # Evidence extraction
+    EVIDENCE_EXTRACTED = auto()  # Shards extracted from episode
+
+    # Suggestion pipeline
+    SUGGESTION_QUEUED = auto()  # Daydream output queued
+    SUGGESTION_SURFACED = auto()  # Delivered to user
+
+    # ==========================================================================
+    # MODE & STATE EVENTS
+    # ==========================================================================
+
+    # Operating mode
+    MODE_TRANSITION = auto()
+    STAKES_UPDATED = auto()
+
+    # Open loops
+    COMMITMENT_EXTRACTED = auto()
+    DECISION_DETECTED = auto()
+
+    # Hypothesis events (daydream mode)
+    HYPOTHESIS_GENERATED = auto()
+    HYPOTHESIS_VALIDATED = auto()
+    HYPOTHESIS_INVALIDATED = auto()
+
+    # ==========================================================================
+    # PROACTIVE NUDGE EVENTS
+    # ==========================================================================
+
+    NUDGE_PREPARED = auto()
+    NUDGE_DELIVERED = auto()
+    NUDGE_SUPPRESSED = auto()
+    NUDGE_DISMISSED = auto()
+
+    # ==========================================================================
+    # AGENT PROCESSING EVENTS (for interactive mode)
+    # ==========================================================================
+
     PROCESSING_STARTED = auto()
     PROCESSING_COMPLETED = auto()
 
@@ -37,50 +89,37 @@ class EventType(Enum):
     COUNCIL_DECISION = auto()
     COUNCIL_COMPLETED = auto()
 
-    # Voice events
+    # Voice/output events
     VOICE_STARTED = auto()
     VOICE_COMPLETED = auto()
 
-    # Brain daemon events
+    # ==========================================================================
+    # SYSTEM EVENTS
+    # ==========================================================================
+
+    SESSION_STARTED = auto()
+    SESSION_ENDED = auto()
+    ERROR = auto()
+
+    # Background daemon
     DAEMON_STARTED = auto()
     DAEMON_STOPPED = auto()
     DAEMON_TICK = auto()
-    DAEMON_WATCHER_ALERT = auto()
-    PROACTIVE_MESSAGE = auto()
 
-    # Audio capture events (ambient mode)
+    # ==========================================================================
+    # LEGACY EVENTS (kept for backward compatibility during transition)
+    # ==========================================================================
+
+    # Will be removed after full migration
+    USER_MESSAGE = auto()  # -> Use USER_QUERY
+    USER_COMMAND = auto()  # -> Use USER_QUERY with command parsing
+    TRANSCRIPT_SEGMENT = auto()  # -> Use UTTERANCE
     AUDIO_CAPTURE_STARTED = auto()
     AUDIO_CAPTURE_STOPPED = auto()
     SPEECH_DETECTED = auto()
     SPEECH_ENDED = auto()
-    TRANSCRIPT_SEGMENT = auto()
-
-    # Episode events
-    EPISODE_STARTED = auto()
-    EPISODE_COMPLETED = auto()
-    EPISODE_BOUNDARY = auto()
-
-    # Ambient mode events
-    MODE_TRANSITION = auto()
-    STAKES_UPDATED = auto()
-    COMMITMENT_EXTRACTED = auto()
-    DECISION_DETECTED = auto()
-
-    # Hypothesis events (daydream mode)
-    HYPOTHESIS_GENERATED = auto()
-    HYPOTHESIS_VALIDATED = auto()
-    HYPOTHESIS_INVALIDATED = auto()
-
-    # Proactive nudge events
-    NUDGE_PREPARED = auto()
-    NUDGE_DELIVERED = auto()
-    NUDGE_SUPPRESSED = auto()
-    NUDGE_DISMISSED = auto()
-
-    # System events
-    SESSION_STARTED = auto()
-    SESSION_ENDED = auto()
-    ERROR = auto()
+    DAEMON_WATCHER_ALERT = auto()
+    PROACTIVE_MESSAGE = auto()
 
 
 @dataclass

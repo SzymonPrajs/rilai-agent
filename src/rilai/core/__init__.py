@@ -1,4 +1,4 @@
-"""Core module - engine, events, sessions, stance, workspace, goal policy."""
+"""Core module - engine, events, sessions, stance, workspace, goal policy, utterances."""
 
 from .engine import Engine
 from .events import Event, EventBus, EventType, event_bus
@@ -14,6 +14,8 @@ from .workspace import (
     create_empty_workspace,
 )
 from .goal_policy import select_goal, check_escalation_needed
+from .utterance import UtteranceEvent
+from .query import UserQueryEvent
 
 __all__ = [
     # Engine
@@ -23,6 +25,9 @@ __all__ = [
     "EventBus",
     "EventType",
     "event_bus",
+    # Canonical input events
+    "UtteranceEvent",
+    "UserQueryEvent",
     # Session
     "Message",
     "Session",

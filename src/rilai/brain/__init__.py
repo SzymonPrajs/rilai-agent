@@ -1,4 +1,4 @@
-"""Brain module - daemon scheduler and modulators."""
+"""Brain module - daemon scheduler, modulators, and ambient processing."""
 
 from .modulators import (
     ARCHETYPE_WEIGHTS,
@@ -8,13 +8,19 @@ from .modulators import (
     get_archetype_weight,
 )
 from .scheduler import BrainDaemon, Scheduler
+from .episode_builder import EpisodeBuilder, EpisodeBuilderConfig
 
 __all__ = [
+    # Modulators
     "AgentActivationState",
     "ARCHETYPE_WEIGHTS",
-    "BrainDaemon",
     "GlobalModulators",
     "MODULATOR_MAP",
-    "Scheduler",
     "get_archetype_weight",
+    # Scheduler
+    "BrainDaemon",
+    "Scheduler",
+    # Episode building
+    "EpisodeBuilder",
+    "EpisodeBuilderConfig",
 ]

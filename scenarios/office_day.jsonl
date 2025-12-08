@@ -1,0 +1,40 @@
+{"t": "09:00:00", "speaker": "you", "channel": "office", "text": "Morning everyone! Ready for standup?", "meta": {"mode": "chitchat"}}
+{"t": "09:00:05", "speaker": "coworker_1", "channel": "office", "text": "Hey! Yeah, let me grab my coffee first.", "meta": {"mode": "chitchat"}}
+{"t": "09:00:15", "speaker": "you", "channel": "office", "text": "Sure, take your time. Did you see the PR I put up yesterday?", "meta": {"mode": "work"}}
+{"t": "09:00:22", "speaker": "coworker_1", "channel": "office", "text": "The one for the stance vector update? Yeah, looks good. I'll review it after standup.", "meta": {"mode": "work"}}
+{"t": "09:01:00", "speaker": "you", "channel": "meeting_room", "text": "Alright, standup time. Yesterday I worked on the multi-round deliberation feature. Got the consensus detection working.", "meta": {"mode": "work"}}
+{"t": "09:01:15", "speaker": "coworker_2", "channel": "meeting_room", "text": "Nice! How does the consensus threshold work?", "meta": {"mode": "work"}}
+{"t": "09:01:25", "speaker": "you", "channel": "meeting_room", "text": "It checks if 70% of agents agree on urgency level. If they do, we can exit early without running all rounds.", "meta": {"mode": "work"}}
+{"t": "09:01:40", "speaker": "coworker_1", "channel": "meeting_room", "text": "I need to finish the API endpoint for the dashboard today. Should have it done by end of day.", "meta": {"mode": "work", "tags": ["commitment"]}}
+{"t": "09:01:55", "speaker": "coworker_2", "channel": "meeting_room", "text": "I'm blocked on the database migration. Can someone help me with the foreign key issue?", "meta": {"mode": "work"}}
+{"t": "09:02:10", "speaker": "you", "channel": "meeting_room", "text": "I can help you with that after lunch. Let me finish the voice rendering first.", "meta": {"mode": "work", "tags": ["commitment"]}}
+{"t": "09:02:25", "speaker": "coworker_2", "channel": "meeting_room", "text": "Perfect, thanks!", "meta": {"mode": "chitchat"}}
+{"t": "10:15:00", "speaker": "you", "channel": "office", "text": "Hmm, I'm thinking about the architecture for the emotion tracking. Should we use a separate service or embed it in the main engine?", "meta": {"mode": "work", "tags": ["decision"]}}
+{"t": "10:15:20", "speaker": "coworker_1", "channel": "office", "text": "Separate service would be cleaner, but adds latency. What's the latency budget?", "meta": {"mode": "work"}}
+{"t": "10:15:35", "speaker": "you", "channel": "office", "text": "Good point. We need sub-100ms for the real-time feel. Maybe embedded is better for now, we can extract later.", "meta": {"mode": "work"}}
+{"t": "10:15:50", "speaker": "coworker_1", "channel": "office", "text": "Yeah, premature optimization and all that. Start simple.", "meta": {"mode": "work"}}
+{"t": "10:30:00", "speaker": "you", "channel": "office", "text": "Actually, I think the bigger question is whether to use WebSockets or Server-Sent Events for the real-time updates.", "meta": {"mode": "work", "tags": ["decision"]}}
+{"t": "10:30:15", "speaker": "coworker_1", "channel": "office", "text": "WebSockets are more flexible, but SSE is simpler if you only need server-to-client.", "meta": {"mode": "work"}}
+{"t": "10:30:30", "speaker": "you", "channel": "office", "text": "True. For the TUI we only need server-to-client. Let me think about it more.", "meta": {"mode": "work"}}
+{"t": "12:05:00", "speaker": "you", "channel": "kitchen", "text": "Anyone else hungry? I was thinking of ordering from that new Thai place.", "meta": {"mode": "chitchat"}}
+{"t": "12:05:10", "speaker": "coworker_2", "channel": "kitchen", "text": "Ooh yes! I love Thai food. Get me the pad thai please.", "meta": {"mode": "chitchat"}}
+{"t": "12:05:20", "speaker": "you", "channel": "kitchen", "text": "Sure! And honestly, I really fancy some eclairs for dessert. There's that French bakery around the corner.", "meta": {"mode": "chitchat", "tags": ["preference"]}}
+{"t": "12:05:30", "speaker": "coworker_2", "channel": "kitchen", "text": "Oh nice! I'm more of a croissant person myself, but eclairs are good too.", "meta": {"mode": "chitchat"}}
+{"t": "12:05:45", "speaker": "you", "channel": "kitchen", "text": "I'll grab a few. Anyone else want anything sweet?", "meta": {"mode": "chitchat"}}
+{"t": "14:15:00", "speaker": "you", "channel": "office", "text": "Okay, back to the bug. The issue is in the authentication middleware.", "meta": {"mode": "work"}}
+{"t": "14:15:15", "speaker": "coworker_1", "channel": "office", "text": "What's happening exactly?", "meta": {"mode": "work"}}
+{"t": "14:15:25", "speaker": "you", "channel": "office", "text": "The JWT token isn't being validated properly. It's accepting expired tokens.", "meta": {"mode": "work"}}
+{"t": "14:15:40", "speaker": "coworker_1", "channel": "office", "text": "That's a security issue. We should fix that before the release.", "meta": {"mode": "work", "tags": ["high_stakes"]}}
+{"t": "14:15:55", "speaker": "you", "channel": "office", "text": "Agreed. I need to update the validation logic and add proper expiration checks.", "meta": {"mode": "work", "tags": ["commitment"]}}
+{"t": "14:30:00", "speaker": "coworker_1", "channel": "office", "text": "Hey, also don't forget to rotate the API keys. The current ones have been in use for too long.", "meta": {"mode": "work", "tags": ["commitment", "high_stakes"]}}
+{"t": "14:30:15", "speaker": "you", "channel": "office", "text": "Oh right, I keep putting that off. I'll add it to my todo list. Actually, I should do it this week before I forget.", "meta": {"mode": "work", "tags": ["commitment"]}}
+{"t": "14:30:30", "speaker": "coworker_1", "channel": "office", "text": "Yeah, it's been on the backlog for months. Better safe than sorry.", "meta": {"mode": "work"}}
+{"t": "15:45:00", "speaker": "you", "channel": "office", "text": "Finally got the token validation working. All tests pass now.", "meta": {"mode": "work"}}
+{"t": "15:45:15", "speaker": "coworker_1", "channel": "office", "text": "Great! Push it up and I'll review.", "meta": {"mode": "work"}}
+{"t": "16:00:00", "speaker": "coworker_2", "channel": "office", "text": "Hey, are you still free to help with that database issue?", "meta": {"mode": "work"}}
+{"t": "16:00:10", "speaker": "you", "channel": "office", "text": "Yes! Sorry, got caught up in the security fix. Let me look at it now.", "meta": {"mode": "work"}}
+{"t": "16:00:25", "speaker": "coworker_2", "channel": "office", "text": "No worries. The issue is with the cascade delete on the user_sessions table.", "meta": {"mode": "work"}}
+{"t": "16:00:40", "speaker": "you", "channel": "office", "text": "Ah I see. You need to set ON DELETE CASCADE in the foreign key constraint. Let me show you.", "meta": {"mode": "work"}}
+{"t": "17:00:00", "speaker": "you", "channel": "office", "text": "Alright, I think I'm going to head out soon. Need to figure out dinner.", "meta": {"mode": "chitchat"}}
+{"t": "17:00:10", "speaker": "coworker_1", "channel": "office", "text": "Same here. Long day! Have a good evening.", "meta": {"mode": "chitchat"}}
+{"t": "17:00:20", "speaker": "you", "channel": "office", "text": "You too! See you tomorrow.", "meta": {"mode": "chitchat"}}
