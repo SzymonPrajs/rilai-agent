@@ -601,7 +601,8 @@ class RilaiTUI(App):
         if event.kind == "sensors":
             table = self.query_one("#sensors-table", DataTable)
             for sensor, (p, ev) in event.payload.items():
-                if not table.has_row(sensor):
+                row_key = table.get_row_index(sensor) if sensor in [k.value for k in table.rows.keys()] else -1
+                if row_key == -1:
                     table.add_row(sensor, f"{p:.2f}", ev or "", key=sensor)
                 else:
                     table.update_cell(sensor, "p", f"{p:.2f}")
@@ -616,8 +617,10 @@ class RilaiTUI(App):
                 if k == "tier":
                     self._last_tier = str(v)
                     self._refresh_status_strip()
-                if table.has_row(k):
+                try:
                     table.update_cell(k, "value", f"{v}" if isinstance(v, str) else f"{v:.2f}")
+                except Exception:
+                    pass  # Row doesn't exist yet
 
         elif event.kind == "agent_log":
             self.query_one("#agent-log", RichLog).write(event.payload["line"])
@@ -876,8 +879,10 @@ class RilaiTUI(App):
         # Reset stance table
         stance = self.query_one("#stance-table", DataTable)
         for metric in ["valence", "arousal", "certainty", "safety", "closeness", "curiosity", "strain", "goal", "tier"]:
-            if stance.has_row(metric):
+            try:
                 stance.update_cell(metric, "value", "-")
+            except Exception:
+                pass  # Row doesn't exist
 
         # Clear critics table
         critics = self.query_one("#critics-table", DataTable)
