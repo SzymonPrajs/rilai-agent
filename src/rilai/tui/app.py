@@ -818,9 +818,11 @@ class RilaiTUI(App):
                     # Log commitments/decisions to memory
                     memory_log = self.query_one("#memory-log", RichLog)
                     for c in commitments[:3]:
-                        memory_log.write(f"[commitment] {c.what[:50]}...")
+                        text = c.get('text', '') if isinstance(c, dict) else getattr(c, 'what', str(c))
+                        memory_log.write(f"[commitment] {text[:50]}...")
                     for d in decisions[:3]:
-                        memory_log.write(f"[decision] {d.what[:50]}...")
+                        text = d.get('text', '') if isinstance(d, dict) else getattr(d, 'what', str(d))
+                        memory_log.write(f"[decision] {text[:50]}...")
 
                     self._set_activity("SENSING")
 
