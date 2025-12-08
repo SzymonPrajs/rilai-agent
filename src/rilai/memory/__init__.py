@@ -21,6 +21,10 @@ from .relational import (
     RelationalMemoryStore,
     create_memory_store,
 )
+# v3 memory components
+from .episodic import EpisodicStore
+from .user_model import UserModel
+from .retrieval import MemoryRetriever
 
 __all__ = [
     # Database storage
@@ -41,4 +45,8 @@ __all__ = [
     "RelationshipMemory",
     "RelationalMemoryStore",
     "create_memory_store",
+    # v3 memory components
+    "EpisodicStore",
+    "UserModel",
+    "MemoryRetriever",
 ]

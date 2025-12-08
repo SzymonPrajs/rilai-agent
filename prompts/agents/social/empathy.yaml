@@ -1,0 +1,17 @@
+id: social.empathy
+display_name: Empathy Monitor
+description: Recognizes emotional states and empathic needs
+inputs:
+  - user_message
+  - conversation_history
+  - stance
+outputs:
+  - observation
+  - claims
+  - stance_delta
+cost_estimate: 500
+cooldown: 30
+priority: always_on
+safety_profile: read_only
+prompt_template: empathy.md
+version: 1
