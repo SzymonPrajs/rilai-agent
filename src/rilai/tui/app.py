@@ -601,12 +601,11 @@ class RilaiTUI(App):
         if event.kind == "sensors":
             table = self.query_one("#sensors-table", DataTable)
             for sensor, (p, ev) in event.payload.items():
-                row_key = table.get_row_index(sensor) if sensor in [k.value for k in table.rows.keys()] else -1
-                if row_key == -1:
-                    table.add_row(sensor, f"{p:.2f}", ev or "", key=sensor)
-                else:
+                try:
                     table.update_cell(sensor, "p", f"{p:.2f}")
                     table.update_cell(sensor, "evidence", ev or "")
+                except Exception:
+                    table.add_row(sensor, f"{p:.2f}", ev or "", key=sensor)
 
         elif event.kind == "stance":
             table = self.query_one("#stance-table", DataTable)
@@ -791,10 +790,10 @@ class RilaiTUI(App):
                         evidence_counts[shard.type] = evidence_counts.get(shard.type, 0) + 1
 
                     for etype, count in evidence_counts.items():
-                        if not sensors_table.has_row(etype):
-                            sensors_table.add_row(etype, f"{count}", "", key=etype)
-                        else:
+                        try:
                             sensors_table.update_cell(etype, "p", f"{count}")
+                        except Exception:
+                            sensors_table.add_row(etype, f"{count}", "", key=etype)
 
                     await asyncio.sleep(0.15)
 
