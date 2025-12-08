@@ -5,37 +5,16 @@ Hierarchical inspector for all cognitive states in the two-pass pipeline.
 Provides expandable views of stance, sensors, agents, workspace, critics, and memory.
 """
 
-from dataclasses import dataclass
-
 from textual.app import ComposeResult
 from textual.containers import ScrollableContainer
 from textual.widgets import Collapsible, Static, Tree
 
+from rilai.core.turn_state import TurnState
 from rilai.tui.theme import (
     BAR_EMPTY,
     BAR_FILLED,
     make_bar,
 )
-
-
-@dataclass
-class TurnState:
-    """Complete state for a turn, used to update the inspector."""
-    turn_id: int = 0
-    stance: dict = None
-    sensors: dict = None
-    agents: list = None
-    workspace: dict = None
-    critics: list = None
-    memory: dict = None
-
-    def __post_init__(self):
-        self.stance = self.stance or {}
-        self.sensors = self.sensors or {}
-        self.agents = self.agents or []
-        self.workspace = self.workspace or {}
-        self.critics = self.critics or []
-        self.memory = self.memory or {}
 
 
 class StanceVectorWidget(Static):
@@ -212,6 +191,8 @@ class MicroAgentsTree(Tree):
 class WorkspaceCollapsible(Collapsible):
     """Collapsible workspace packet view."""
 
+    can_focus = True
+
     DEFAULT_CSS = """
     WorkspaceCollapsible {
         border: solid $warning;
@@ -250,6 +231,8 @@ class WorkspaceCollapsible(Collapsible):
 
 class CriticsCollapsible(Collapsible):
     """Collapsible critics results view."""
+
+    can_focus = True
 
     DEFAULT_CSS = """
     CriticsCollapsible {
@@ -295,6 +278,8 @@ class CriticsCollapsible(Collapsible):
 
 class MemoryCollapsible(Collapsible):
     """Collapsible relational memory view."""
+
+    can_focus = True
 
     DEFAULT_CSS = """
     MemoryCollapsible {
@@ -346,6 +331,11 @@ class StateInspector(ScrollableContainer):
     in an expandable tree structure.
     """
 
+    BINDINGS = [
+        ("up", "focus_previous", "Previous"),
+        ("down", "focus_next", "Next"),
+    ]
+
     DEFAULT_CSS = """
     StateInspector {
         width: 50%;
@@ -379,6 +369,41 @@ class StateInspector(ScrollableContainer):
         yield self._workspace_widget
         yield self._critics_widget
         yield self._memory_widget
+
+    def get_focusable_children(self) -> list:
+        """Return list of focusable child widgets in order."""
+        return [
+            self._agents_tree,
+            self._workspace_widget,
+            self._critics_widget,
+            self._memory_widget,
+        ]
+
+    def action_focus_previous(self) -> None:
+        """Focus the previous focusable section."""
+        focusables = self.get_focusable_children()
+        current = self.app.focused
+        if current in focusables:
+            idx = focusables.index(current)
+            if idx > 0:
+                focusables[idx - 1].focus()
+                self.scroll_to_widget(focusables[idx - 1])
+
+    def action_focus_next(self) -> None:
+        """Focus the next focusable section."""
+        focusables = self.get_focusable_children()
+        current = self.app.focused
+        if current in focusables:
+            idx = focusables.index(current)
+            if idx < len(focusables) - 1:
+                focusables[idx + 1].focus()
+                self.scroll_to_widget(focusables[idx + 1])
+
+    def focus_first(self) -> None:
+        """Focus the first focusable child."""
+        if self._agents_tree:
+            self._agents_tree.focus()
+            self.scroll_to_widget(self._agents_tree)
 
     def update_turn_state(self, state: TurnState) -> None:
         """Update all widgets with new turn state."""

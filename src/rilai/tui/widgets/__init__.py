@@ -12,8 +12,9 @@ from .state_inspector import (
     WorkspaceCollapsible,
     CriticsCollapsible,
     MemoryCollapsible,
-    TurnState,
 )
+# Re-export TurnState from core for backwards compatibility
+from rilai.core.turn_state import TurnState
 
 __all__ = [
     # Legacy widgets

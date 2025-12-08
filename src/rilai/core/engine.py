@@ -20,6 +20,12 @@ from rilai.council.pipeline import Council
 from rilai.observability import get_store
 
 from .events import Event, EventType, event_bus
+from .turn_state import EngineResult, TurnState, build_turn_state
+from .stance_aggregator import aggregate_stance
+from .sensor_extractor import extract_sensors
+from .workspace_aggregator import build_workspace
+from .memory_extractor import extract_memory
+from .critics_integration import run_critics
 
 logger = logging.getLogger(__name__)
 
@@ -93,14 +99,14 @@ class Engine:
 
         logger.info("Engine stopped")
 
-    async def process_message(self, user_input: str) -> str:
+    async def process_message(self, user_input: str) -> EngineResult:
         """Process a user message through the full pipeline.
 
         Args:
             user_input: The user's message
 
         Returns:
-            The response message from council/voice
+            EngineResult with response and turn state for TUI panels
         """
         start_time = time.time()
 
@@ -186,6 +192,55 @@ class Engine:
                     thinking=council_response.synthesis.thinking,
                 )
 
+            # Build turn state for TUI panels
+            collected = council_response.collected
+
+            # Extract agents data for TUI
+            agents_data = [
+                {
+                    "agent": agent.agent_id,
+                    "salience": agent.salience.raw_score if agent.salience else 0,
+                    "glimpse": agent.voice[:100] if agent.voice else "",
+                    "stance_delta": {},  # Not tracked per-agent yet
+                    "hypotheses": [],
+                    "questions": [],
+                }
+                for agent in collected.all_agents
+                if not agent.is_quiet
+            ]
+
+            # Aggregate stance from agents
+            stance = aggregate_stance(collected)
+
+            # Extract sensors from event
+            sensors = extract_sensors(event)
+
+            # Build workspace summary
+            workspace = build_workspace(council_response, collected)
+
+            # Extract memory summary
+            memory = extract_memory(self.store)
+
+            # Run critics (async, may add latency)
+            critics = await run_critics(
+                response=response,
+                user_input=user_input,
+                turn_id=turn_context.turn_id,
+                sensors=sensors,
+                council_response=council_response,
+            )
+
+            # Build complete turn state
+            turn_state = build_turn_state(
+                turn_id=turn_context.turn_id,
+                stance=stance,
+                sensors=sensors,
+                agents=agents_data,
+                workspace=workspace,
+                critics=critics,
+                memory=memory,
+            )
+
             # End turn
             total_time_ms = int((time.time() - start_time) * 1000)
             self.store.end_turn(
@@ -205,7 +260,7 @@ class Engine:
                 )
             )
 
-            return response
+            return EngineResult(response=response, turn_state=turn_state)
 
         except Exception as e:
             logger.error(f"Error processing message: {e}")

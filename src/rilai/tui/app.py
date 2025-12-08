@@ -16,11 +16,12 @@ from textual.widgets import Footer, Header, Static
 from .commands import handle_command
 from .widgets import (
     AgencyStatus, ChatInput, ChatPanel, ModulatorsPanel, ThinkingPanel,
-    StateInspector, TurnState,
+    StateInspector,
 )
 
 from rilai.core.engine import Engine
 from rilai.core.events import event_bus, Event, EventType
+from rilai.core.turn_state import TurnState
 
 
 class RilaiApp(App):
@@ -117,6 +118,14 @@ class RilaiApp(App):
         margin-bottom: 1;
     }
 
+    /* Focus indicators for keyboard navigation */
+    MicroAgentsTree:focus,
+    WorkspaceCollapsible:focus,
+    CriticsCollapsible:focus,
+    MemoryCollapsible:focus {
+        border: double #FFFFFF;
+    }
+
     /* Legacy sidebar (hidden by default, can be toggled) */
     #legacy-sidebar {
         display: none;
@@ -135,6 +144,8 @@ class RilaiApp(App):
         ("ctrl+l", "toggle_legacy", "Legacy View"),
         ("ctrl+h", "toggle_history", "History"),
         ("escape", "focus_input", "Focus Input"),
+        ("ctrl+right", "focus_inspector", "Focus Inspector"),
+        ("ctrl+left", "focus_chat", "Focus Chat"),
     ]
 
     def __init__(self, **kwargs):
@@ -229,11 +240,14 @@ class RilaiApp(App):
 
         try:
             # Process through the engine
-            response = await self._engine.process_message(message)
+            result = await self._engine.process_message(message)
 
             # Display response
-            if self._chat_panel and response:
-                self._chat_panel.add_message("assistant", response)
+            if self._chat_panel and result.response:
+                self._chat_panel.add_message("assistant", result.response)
+
+            # Update state inspector with turn state
+            self.update_turn_state(result.turn_state)
 
         except Exception as e:
             self.show_system_message(f"Error: {e}")
@@ -304,6 +318,15 @@ class RilaiApp(App):
         """Focus the chat input."""
         if self._chat_panel:
             self._chat_panel.focus_input()
+
+    def action_focus_inspector(self) -> None:
+        """Focus the state inspector panel."""
+        if self._state_inspector and self._state_inspector.display:
+            self._state_inspector.focus_first()
+
+    def action_focus_chat(self) -> None:
+        """Focus the chat panel."""
+        self.action_focus_input()
 
     # State inspector updates
 

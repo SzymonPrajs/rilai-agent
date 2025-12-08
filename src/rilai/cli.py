@@ -40,8 +40,9 @@ def cmd_shell(args: argparse.Namespace) -> int:
                 if not user_input:
                     continue
 
-                response = await engine.process_message(user_input)
-                print(f"\nRilai: {response}")
+                result = await engine.process_message(user_input)
+                if result.response:
+                    print(f"\nRilai: {result.response}")
 
         finally:
             await engine.stop()
