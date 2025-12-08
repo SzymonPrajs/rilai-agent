@@ -480,8 +480,10 @@ class RilaiTUI(App):
                 yield Static("Chat", classes="pane-title")
                 yield RichLog(id="chat-log", wrap=True, highlight=True)
                 with Horizontal(id="input-row"):
-                    yield Input(placeholder="Type here or /play to load scenario...", id="chat-input")
+                    yield Input(placeholder="Type a message...", id="chat-input")
                     yield Button("Send", id="send-btn", variant="primary")
+                    yield Button("Play", id="play-btn")
+                    yield Button("Clear", id="clear-btn")
                     yield Button("Mic: OFF", id="mic-btn")
                 yield Static("", id="activity-bar")
 
@@ -859,6 +861,14 @@ class RilaiTUI(App):
     @on(Button.Pressed, "#mic-btn")
     def on_mic_pressed(self) -> None:
         self.action_toggle_mic()
+
+    @on(Button.Pressed, "#play-btn")
+    def on_play_pressed(self) -> None:
+        self.run_worker(self._cmd_play(""), name="play", exclusive=True)
+
+    @on(Button.Pressed, "#clear-btn")
+    def on_clear_pressed(self) -> None:
+        self.action_clear_chat()
 
     def action_toggle_mic(self) -> None:
         """Toggle microphone (stub for future voice)."""
