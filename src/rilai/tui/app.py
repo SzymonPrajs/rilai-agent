@@ -795,7 +795,10 @@ class RilaiTUI(App):
                         try:
                             sensors_table.update_cell(etype, "p", f"{count}")
                         except Exception:
-                            sensors_table.add_row(etype, f"{count}", "", key=etype)
+                            try:
+                                sensors_table.add_row(etype, f"{count}", "", key=etype)
+                            except Exception:
+                                pass  # Row already exists with different key object
 
                     await asyncio.sleep(0.15)
 
