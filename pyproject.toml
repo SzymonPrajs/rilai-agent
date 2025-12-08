@@ -26,6 +26,7 @@ dependencies = [
     "jinja2>=3.1.0",            # Prompt templates
     "rich>=13.0.0",             # Pretty printing (textual dep)
     "aiosqlite>=0.20.0",        # Async SQLite for permanent storage
+    "websockets>=12.0",         # WebSocket client for ElevenLabs STT
 ]
 
 [project.optional-dependencies]

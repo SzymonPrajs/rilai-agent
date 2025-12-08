@@ -18,10 +18,10 @@ ELEVENLABS_API_KEY = ""  # Get from https://elevenlabs.io/app/settings/api-keys
 
 # All models (treated as thinking models)
 MODELS = {
-    "tiny": "meta-llama/llama-3.2-1b-instruct",       # Ambient mode (lowest cost)
-    "small": "meta-llama/llama-3.1-8b-instruct",      # Fast agent assessments
-    "medium": "meta-llama/llama-3.3-70b-instruct",    # Council synthesis
-    "large": "deepseek/deepseek-chat",                # Deep reasoning tasks
+    "tiny":  "openai/gpt-oss-20b",           # Very fast agent sensors
+    "small": "openai/gpt-oss-120b",          # Fast agent assessments
+    "medium": "x-ai/grok-4.1-fast",          # Council synthesis
+    "large":  "google/gemini-3-pro-preview", # Deep reasoning tasks
 }
 
 # Reasoning effort per context
@@ -76,11 +76,29 @@ AUDIO_SILENCE_TIMEOUT_MS = 5000       # Silence duration to end episode (ms)
 AUDIO_CHUNK_DURATION_MS = 100         # Duration per audio chunk (ms)
 
 # =============================================================================
-# ElevenLabs STT
+# ElevenLabs STT (Scribe Realtime v2)
 # =============================================================================
 
-ELEVENLABS_STT_MODEL = "scribe_v1"    # ElevenLabs transcription model
-ELEVENLABS_STT_LANGUAGE = "en"        # Language code for transcription
+# Model configuration
+ELEVENLABS_STT_MODEL = "scribe_v2_realtime"  # Realtime streaming model
+ELEVENLABS_STT_LANGUAGE = "en"               # ISO-639-1/3 language code (empty = auto-detect)
+
+# Audio format settings
+ELEVENLABS_STT_AUDIO_FORMAT = "pcm_16000"    # pcm_8000, pcm_16000, pcm_22050, pcm_24000, pcm_44100, pcm_48000, ulaw_8000
+ELEVENLABS_STT_SAMPLE_RATE = 16000           # Must match audio format
+
+# VAD (Voice Activity Detection) settings
+ELEVENLABS_STT_COMMIT_STRATEGY = "vad"       # "manual" or "vad" (auto-commit on silence)
+ELEVENLABS_STT_VAD_THRESHOLD = 0.4           # VAD sensitivity 0.1-0.9 (lower = more sensitive)
+ELEVENLABS_STT_VAD_SILENCE_SECS = 1.5        # Seconds of silence before VAD commit
+
+# Output settings
+ELEVENLABS_STT_INCLUDE_TIMESTAMPS = True     # Include word-level timestamps in output
+
+# WebSocket settings
+ELEVENLABS_STT_CHUNK_INTERVAL_MS = 100       # Interval between audio chunk sends (100-1000ms recommended)
+ELEVENLABS_STT_RECONNECT_ATTEMPTS = 3        # Max reconnection attempts on failure
+ELEVENLABS_STT_RECONNECT_DELAY_MS = 1000     # Initial delay between reconnection attempts (exponential backoff)
 
 # =============================================================================
 # Episode Segmentation

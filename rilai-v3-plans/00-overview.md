@@ -26,6 +26,7 @@
 - [x] **09-tui** - TUI projection (2024-12-08) - panels/projection done, app integration pending
 - [x] **10-daemon** - Brain daemon (2024-12-08)
 - [ ] **11-migration** - Migration and cleanup (agent prompts + v2 file deletion pending)
+- [x] **12-wire-up-pipeline** - Wire up agent pipeline, remove stubs (2024-12-08)
 
 ### Detailed Task Tracking
 

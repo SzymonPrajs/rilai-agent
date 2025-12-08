@@ -92,6 +92,10 @@ class Workspace:
     def active_claims(self) -> list[Claim]:
         return self._active_claims
 
+    @active_claims.setter
+    def active_claims(self, value: list[Claim]) -> None:
+        self._active_claims = value
+
     @property
     def consensus_level(self) -> float:
         return self._state.consensus_level

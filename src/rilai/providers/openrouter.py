@@ -287,6 +287,37 @@ class OpenRouterClient:
                     if content := chunk["choices"][0]["delta"].get("content"):
                         yield content
 
+    async def generate(
+        self,
+        messages: list[dict],
+        tier: str = "small",
+        temperature: float = 0.7,
+        max_tokens: int | None = None,
+    ) -> ModelResponse:
+        """Generate completion using tier-based model selection.
+
+        This is a convenience wrapper around complete() that maps tiers
+        (tiny/small/medium/large) to actual model names from config.
+
+        Args:
+            messages: List of message dicts [{"role": ..., "content": ...}]
+            tier: Model tier ("tiny", "small", "medium", "large")
+            temperature: Sampling temperature
+            max_tokens: Max tokens in response
+        """
+        config = get_config()
+        model = config.MODELS.get(tier, config.MODELS.get("small"))
+
+        # Convert dicts to Message objects
+        msg_objects = [Message(role=m["role"], content=m["content"]) for m in messages]
+
+        return await self.complete(
+            messages=msg_objects,
+            model=model,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+
     async def close(self) -> None:
         """Close the HTTP client."""
         if self._client:
@@ -296,3 +327,8 @@ class OpenRouterClient:
 
 # Singleton instance
 openrouter = OpenRouterClient()
+
+
+def get_provider() -> OpenRouterClient:
+    """Get the singleton OpenRouter client."""
+    return openrouter

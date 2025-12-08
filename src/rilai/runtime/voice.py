@@ -58,16 +58,22 @@ class Voice:
                     speech_act=decision.speech_act,
                 )
 
+        # Get model from config
+        from rilai.config import get_config
+        from rilai.providers.openrouter import Message
+        config = get_config()
+        model = config.MODELS.get("medium", config.MODELS.get("small"))
+
         response = await provider.complete(
             messages=[
-                {"role": "system", "content": self._get_system_prompt()},
-                {"role": "user", "content": prompt},
+                Message(role="system", content=self._get_system_prompt()),
+                Message(role="user", content=prompt),
             ],
-            model="medium",
+            model=model,
         )
 
         text = response.content.strip()
-        token_count = response.usage.get("total_tokens", 0) if response.usage else 0
+        token_count = response.usage.total_tokens if response.usage else 0
 
         # Create result
         result = VoiceResult(
@@ -200,13 +206,19 @@ IMPORTANT:
                 yield self._generate_fallback_response(decision, workspace)
                 return
 
+        # Get model from config
+        from rilai.config import get_config
+        from rilai.providers.openrouter import Message
+        config = get_config()
+        model = config.MODELS.get("medium", config.MODELS.get("small"))
+
         full_text = ""
-        async for chunk in provider.complete_streaming(
+        async for chunk in provider.stream(
             messages=[
-                {"role": "system", "content": self._get_system_prompt()},
-                {"role": "user", "content": prompt},
+                Message(role="system", content=self._get_system_prompt()),
+                Message(role="user", content=prompt),
             ],
-            model="medium",
+            model=model,
         ):
             full_text += chunk
             yield chunk

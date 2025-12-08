@@ -126,7 +126,7 @@ async def run_memory_retrieval(
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Stage 3-4: Agent Waves (stub - implemented in 05-agents)
+# Stage 3-4: Agent Waves
 # ─────────────────────────────────────────────────────────────────────────────
 
 async def run_agent_waves(
@@ -134,15 +134,27 @@ async def run_agent_waves(
     workspace: "Workspace",
     scheduler: "Scheduler",
 ) -> AsyncIterator[EngineEvent]:
-    """Run agents in waves, yielding events.
+    """Run agents in waves using MicroAgentRunner."""
+    import logging
+    import time
+    import uuid
 
-    Stub implementation - will be replaced by 05-agents module.
-    """
-    # Get scheduled agents
+    from rilai.agents.runner import MicroAgentRunner
+    from rilai.providers.openrouter import openrouter
+    from rilai.core.stance import StanceVector as CoreStanceVector
+    from rilai.contracts.agent import Claim, ClaimType
+
+    logger = logging.getLogger(__name__)
+
+    agent_runner = MicroAgentRunner(openrouter)
+
+    # Get scheduled agents from scheduler
     waves = scheduler.get_agent_waves(
         sensors=workspace.sensors if hasattr(workspace, 'sensors') else {},
         modulators=workspace.modulators,
     )
+
+    all_outputs = []
 
     for wave_num, agent_ids in enumerate(waves):
         yield runner._emit(
@@ -150,26 +162,92 @@ async def run_agent_waves(
             {"wave": wave_num, "agent_count": len(agent_ids)},
         )
 
-        # Stub: emit placeholder agent completions
-        for agent_id in agent_ids:
-            yield runner._emit(EventKind.AGENT_STARTED, {"agent_id": agent_id})
+        # Convert workspace stance to core StanceVector (dataclass)
+        ws = workspace.stance
+        core_stance = CoreStanceVector(
+            valence=ws.valence,
+            arousal=ws.arousal,
+            control=ws.control,
+            certainty=ws.certainty,
+            safety=ws.safety,
+            closeness=ws.closeness,
+            curiosity=ws.curiosity,
+            strain=ws.strain,
+        )
+
+        # Get sensor dict
+        sensors = workspace.sensors if hasattr(workspace, 'sensors') else {}
+
+        # Run agents for this wave
+        # Note: If scheduler has no registry, agent_ids are placeholders that won't match
+        # In that case, pass agent_ids=None to run all triggered agents from catalog
+        start_time = time.time()
+        try:
+            # Check if these are real agent IDs from catalog
+            catalog_ids = set(agent_runner.get_agent_ids())
+            valid_ids = [aid for aid in agent_ids if aid in catalog_ids]
+
+            outputs = await agent_runner.run(
+                user_text=workspace.user_message,
+                sensors=sensors,
+                stance=core_stance,
+                agent_ids=valid_ids if valid_ids else None,  # None = run all triggered
+            )
+        except Exception as e:
+            # Log error but continue - don't fail the whole turn
+            logger.warning(f"Agent wave {wave_num} failed: {e}")
+            outputs = []
+
+        wave_time_ms = int((time.time() - start_time) * 1000)
+
+        # Emit individual agent completion events
+        for output in outputs:
+            yield runner._emit(EventKind.AGENT_STARTED, {"agent_id": output.agent})
             yield runner._emit(
                 EventKind.AGENT_COMPLETED,
                 {
-                    "agent_id": agent_id,
-                    "observation": "Quiet",
-                    "salience": 0.0,
-                    "urgency": 0,
-                    "confidence": 0,
+                    "agent_id": output.agent,
+                    "observation": output.glimpse or "",
+                    "salience": output.salience,
+                    "urgency": min(3, int(output.salience * 4)),
+                    "confidence": min(3, int(output.salience * 4)),
                     "claims": [],
-                    "processing_time_ms": 0,
+                    "processing_time_ms": wave_time_ms // max(1, len(outputs)),
                 },
             )
 
+        all_outputs.extend(outputs)
+
+        # Apply stance deltas to workspace
+        if outputs:
+            merged_deltas = agent_runner.merge_deltas(outputs)
+            if merged_deltas:
+                for dim, delta in merged_deltas.items():
+                    if hasattr(workspace.stance, dim):
+                        current = getattr(workspace.stance, dim)
+                        setattr(workspace.stance, dim, max(-1, min(1, current + delta)))
+
         yield runner._emit(
             EventKind.WAVE_COMPLETED,
-            {"wave": wave_num, "results": len(agent_ids)},
+            {"wave": wave_num, "results": len(outputs)},
         )
+
+    # Store agent outputs for council to use
+    workspace._agent_outputs = all_outputs
+
+    # Convert to claims for council
+    claims = []
+    for output in all_outputs:
+        if output.salience > 0.1 and output.glimpse:
+            claims.append(Claim(
+                id=str(uuid.uuid4()),
+                text=output.glimpse[:200],  # Claim text max 200 chars
+                type=ClaimType.OBSERVATION,
+                source_agent=output.agent,
+                urgency=min(3, int(output.salience * 4)),
+                confidence=min(3, int(output.salience * 4)),
+            ))
+    workspace._active_claims = claims
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -204,38 +282,45 @@ async def run_deliberation(
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Stage 6: Council (stub - implemented in 07-council-voice)
+# Stage 6: Council
 # ─────────────────────────────────────────────────────────────────────────────
 
 async def run_council(
     runner: "TurnRunner",
     workspace: "Workspace",
 ) -> AsyncIterator[EngineEvent]:
-    """Run council decision and voice rendering.
+    """Run council decision and voice rendering."""
+    from rilai.runtime.council import Council
+    from rilai.runtime.voice import Voice
 
-    Stub implementation - will be replaced by 07-council-voice module.
-    """
-    yield runner._emit(
-        EventKind.COUNCIL_DECISION_MADE,
-        {
-            "speak": True,
-            "urgency": "medium",
-            "intent": "respond",
-            "key_points": ["acknowledge user input"],
-            "thinking": None,
-        },
-    )
+    # Populate active_claims from agent outputs
+    if hasattr(workspace, '_active_claims'):
+        workspace.active_claims = workspace._active_claims
+    else:
+        workspace.active_claims = []
 
-    workspace.current_goal = "respond"
-    workspace.constraints = []
+    council = Council(emit_fn=runner._emit)
+    voice = Voice(emit_fn=runner._emit)
 
-    # Stub response
-    workspace.current_response = f"I hear you. You said: {workspace.user_message[:100]}"
+    # Make decision
+    decision = await council.decide(workspace)
 
-    yield runner._emit(
-        EventKind.VOICE_RENDERED,
-        {"text": workspace.current_response},
-    )
+    # Set workspace state from decision
+    if decision.speech_act:
+        workspace.current_goal = decision.speech_act.intent
+        workspace.constraints = decision.speech_act.do_not or []
+
+    if decision.speak:
+        # Render response via Voice (makes LLM call)
+        result = await voice.render(decision, workspace)
+        workspace.current_response = result.text
+        # Voice.render already emits VOICE_RENDERED event
+    else:
+        workspace.current_response = ""
+        yield runner._emit(
+            EventKind.VOICE_RENDERED,
+            {"text": ""},
+        )
 
 
 async def run_safety_council(
@@ -266,27 +351,48 @@ async def run_safety_council(
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Stage 7: Critics (stub - implemented in 07-council-voice)
+# Stage 7: Critics
 # ─────────────────────────────────────────────────────────────────────────────
 
 async def run_critics(
     runner: "TurnRunner",
     workspace: "Workspace",
 ) -> AsyncIterator[EngineEvent]:
-    """Run post-generation critics.
+    """Run post-generation critics."""
+    from rilai.runtime.critics import Critics
+    from rilai.contracts.council import CouncilDecision, SpeechAct
 
-    Stub implementation - will be replaced by 07-council-voice module.
-    """
-    # Stub: all critics pass
-    results = [
-        {"critic": "length_check", "passed": True, "reason": ""},
-        {"critic": "safety_check", "passed": True, "reason": ""},
-    ]
+    if not workspace.current_response:
+        yield runner._emit(
+            EventKind.CRITICS_UPDATED,
+            {"results": [], "passed": True},
+        )
+        return
 
-    yield runner._emit(
-        EventKind.CRITICS_UPDATED,
-        {"results": results},
+    critics = Critics(emit_fn=runner._emit)
+
+    # Reconstruct minimal decision for critics
+    decision = CouncilDecision(
+        speak=True,
+        urgency="medium",
+        speech_act=SpeechAct(
+            intent=workspace.current_goal or "witness",
+            key_points=[],
+            tone="friendly",
+        ),
+        needs_clarification=None,
+        thinking="",
     )
+
+    # Critics.validate() emits the CRITICS_UPDATED event
+    passed, results = await critics.validate(
+        workspace.current_response,
+        workspace,
+        decision,
+    )
+    # Event already emitted by critics.validate(), yield nothing extra
+    return
+    yield  # Make this an async generator
 
 
 # ─────────────────────────────────────────────────────────────────────────────
