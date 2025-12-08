@@ -12,25 +12,25 @@
 > also update the master checklist in `00-overview.md`.
 
 ### Files to Create
-- [ ] `src/rilai/runtime/__init__.py`
-- [ ] `src/rilai/runtime/turn_runner.py` - TurnRunner class
-- [ ] `src/rilai/runtime/stages.py` - Stage implementations
-- [ ] `src/rilai/runtime/scheduler.py` - Scheduler class
+- [x] `src/rilai/runtime/__init__.py`
+- [x] `src/rilai/runtime/turn_runner.py` - TurnRunner class
+- [x] `src/rilai/runtime/stages.py` - Stage implementations
+- [x] `src/rilai/runtime/scheduler.py` - Scheduler class
 
 ### Stage Implementation
-- [ ] Stage 0: Ingest - TurnStarted event
-- [ ] Stage 1: Fast Sensors - SensorsFastUpdated event
-- [ ] Stage 2: Context Build - WorkspacePatched event
-- [ ] Stage 3-4: Agent Waves - AgentStarted/Completed events
-- [ ] Stage 5: Deliberation - placeholder (implemented in 06)
-- [ ] Stage 6: Council - placeholder (implemented in 07)
-- [ ] Stage 7: Critics - placeholder (implemented in 07)
-- [ ] Stage 8: Memory Commit - placeholder (implemented in 08)
+- [x] Stage 0: Ingest - TurnStarted event
+- [x] Stage 1: Fast Sensors - SensorsFastUpdated event
+- [x] Stage 2: Context Build - WorkspacePatched event
+- [x] Stage 3-4: Agent Waves - AgentStarted/Completed events
+- [x] Stage 5: Deliberation - placeholder (implemented in 06)
+- [x] Stage 6: Council - placeholder (implemented in 07)
+- [x] Stage 7: Critics - placeholder (implemented in 07)
+- [x] Stage 8: Memory Commit - placeholder (implemented in 08)
 
 ### Verification
-- [ ] TurnRunner yields events in correct order
-- [ ] `async for event in runner.run_turn("test")` works
-- [ ] Write and run unit tests
+- [x] TurnRunner yields events in correct order
+- [x] `async for event in runner.run_turn("test")` works
+- [x] Write and run unit tests
 
 ### v2 Files to Delete (after verification)
 - [ ] `src/rilai/core/engine.py`

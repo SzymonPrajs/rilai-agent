@@ -12,23 +12,23 @@
 > also update the master checklist in `00-overview.md`.
 
 ### Files to Create
-- [ ] `src/rilai/store/__init__.py`
-- [ ] `src/rilai/store/event_log.py` - EventLogWriter class
-- [ ] `src/rilai/store/projections/__init__.py`
-- [ ] `src/rilai/store/projections/base.py` - Projection base class
-- [ ] `src/rilai/store/projections/turn_state.py` - TurnStateProjection
-- [ ] `src/rilai/store/projections/session.py` - SessionProjection
-- [ ] `src/rilai/store/projections/analytics.py` - AnalyticsProjection
-- [ ] `src/rilai/store/projections/debug.py` - DebugProjection
+- [x] `src/rilai/store/__init__.py`
+- [x] `src/rilai/store/event_log.py` - EventLogWriter class
+- [x] `src/rilai/store/projections/__init__.py`
+- [x] `src/rilai/store/projections/base.py` - Projection base class
+- [x] `src/rilai/store/projections/turn_state.py` - TurnStateProjection
+- [x] `src/rilai/store/projections/session.py` - SessionProjection
+- [x] `src/rilai/store/projections/analytics.py` - AnalyticsProjection
+- [x] `src/rilai/store/projections/debug.py` - DebugProjection
 
 ### Database
-- [ ] SQLite schema created and tested
-- [ ] Indexes created for performance
+- [x] SQLite schema created and tested
+- [x] Indexes created for performance
 
 ### Verification
-- [ ] EventLogWriter can append and replay events
-- [ ] Projections rebuild correctly from event stream
-- [ ] Write and run unit tests
+- [x] EventLogWriter can append and replay events
+- [x] Projections rebuild correctly from event stream
+- [x] Write and run unit tests
 
 ### v2 Files to Delete (after verification)
 - [ ] `src/rilai/memory/database.py`

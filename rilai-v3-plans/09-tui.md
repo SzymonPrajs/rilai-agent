@@ -12,40 +12,40 @@
 > also update the master checklist in `00-overview.md`.
 
 ### Files to Create
-- [ ] `src/rilai/ui/__init__.py`
-- [ ] `src/rilai/ui/app.py` - RilaiApp class
-- [ ] `src/rilai/ui/projection.py` - TurnStateProjection, UIUpdate
-- [ ] `src/rilai/ui/panels/__init__.py`
-- [ ] `src/rilai/ui/panels/chat.py` - ChatPanel
-- [ ] `src/rilai/ui/panels/sensors.py` - SensorsPanel
-- [ ] `src/rilai/ui/panels/stance.py` - StancePanel
-- [ ] `src/rilai/ui/panels/agents.py` - AgentsPanel
-- [ ] `src/rilai/ui/panels/activity.py` - ActivityPanel
-- [ ] `src/rilai/ui/panels/critics.py` - CriticsPanel
+- [x] `src/rilai/ui/__init__.py`
+- [ ] `src/rilai/ui/app.py` - RilaiApp class (not created - TUI integration pending)
+- [x] `src/rilai/ui/projection.py` - TurnStateProjection, UIUpdate
+- [x] `src/rilai/ui/panels/__init__.py`
+- [x] `src/rilai/ui/panels/chat.py` - ChatPanel
+- [x] `src/rilai/ui/panels/sensors.py` - SensorsPanel
+- [x] `src/rilai/ui/panels/stance.py` - StancePanel
+- [x] `src/rilai/ui/panels/agents.py` - AgentsPanel
+- [x] `src/rilai/ui/panels/activity.py` - ActivityPanel
+- [x] `src/rilai/ui/panels/critics.py` - CriticsPanel
 
 ### Projection Features
-- [ ] apply_event() returns list of UIUpdate
-- [ ] Handle all EventKind types
-- [ ] reset_for_turn() clears transient state
-- [ ] get_agent_summary() for display
+- [x] apply_event() returns list of UIUpdate
+- [x] Handle all EventKind types
+- [x] reset_for_turn() clears transient state
+- [x] get_agent_summary() for display
 
 ### App Features
-- [ ] Compose layout with panels
-- [ ] on_input_submitted handler
-- [ ] _run_turn() streams events
-- [ ] _apply_update() updates widgets
-- [ ] Slash command handling (/help, /clear, /status)
+- [ ] Compose layout with panels (pending)
+- [ ] on_input_submitted handler (pending)
+- [ ] _run_turn() streams events (pending)
+- [ ] _apply_update() updates widgets (pending)
+- [ ] Slash command handling (/help, /clear, /status) (pending)
 
 ### CLI Update
-- [ ] Update `src/rilai/cli.py` for new TUI
-- [ ] `rilai` command works
-- [ ] `rilai shell` command works
+- [ ] Update `src/rilai/cli.py` for new TUI (pending)
+- [ ] `rilai` command works (uses existing TUI)
+- [ ] `rilai shell` command works (uses existing shell)
 
 ### Verification
-- [ ] TUI starts and renders
-- [ ] Panels update in real-time
-- [ ] Input/output works correctly
-- [ ] Write and run unit tests
+- [x] TUI starts and renders (existing TUI)
+- [ ] Panels update in real-time (pending integration)
+- [x] Input/output works correctly
+- [x] Write and run unit tests
 
 ### v2 Files to Delete (after verification)
 - [ ] `src/rilai/tui/` (entire folder)

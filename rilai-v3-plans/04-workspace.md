@@ -12,22 +12,22 @@
 > also update the master checklist in `00-overview.md`.
 
 ### Files to Create
-- [ ] `src/rilai/runtime/workspace.py` - Workspace class
-- [ ] `src/rilai/runtime/reducer.py` - apply_output, claim dedup, stance delta
-- [ ] `src/rilai/runtime/stance.py` - StanceVector utilities
-- [ ] `src/rilai/runtime/modulators.py` - GlobalModulators, decay
+- [x] `src/rilai/runtime/workspace.py` - Workspace class
+- [x] `src/rilai/runtime/reducer.py` - apply_output, claim dedup, stance delta
+- [x] `src/rilai/runtime/stance.py` - StanceVector utilities
+- [x] `src/rilai/runtime/modulators.py` - GlobalModulators, decay
 
 ### Reducer Logic
-- [ ] Claim deduplication (70% word overlap)
-- [ ] Stance delta with leaky integration (alpha=0.25)
-- [ ] MAX_STANCE_DELTA=0.15 per turn
-- [ ] Workspace patch for allowed fields only
+- [x] Claim deduplication (70% word overlap)
+- [x] Stance delta with leaky integration (alpha=0.25)
+- [x] MAX_STANCE_DELTA=0.15 per turn
+- [x] Workspace patch for allowed fields only
 
 ### Verification
-- [ ] Workspace.apply_agent_output() works correctly
-- [ ] Stance bounds are enforced
-- [ ] Claims are properly deduplicated
-- [ ] Write and run unit tests
+- [x] Workspace.apply_agent_output() works correctly
+- [x] Stance bounds are enforced
+- [x] Claims are properly deduplicated
+- [x] Write and run unit tests
 
 ### v2 Files to Delete (after verification)
 - [ ] `src/rilai/core/stance.py`

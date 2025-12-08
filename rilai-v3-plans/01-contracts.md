@@ -12,19 +12,19 @@
 > also update the master checklist in `00-overview.md`.
 
 ### Files to Create
-- [ ] `src/rilai/contracts/__init__.py`
-- [ ] `src/rilai/contracts/events.py` - EventKind enum, EngineEvent model
-- [ ] `src/rilai/contracts/agent.py` - AgentOutput, Claim, ClaimType, AgentManifest, AgentPriority
-- [ ] `src/rilai/contracts/sensor.py` - SensorOutput
-- [ ] `src/rilai/contracts/workspace.py` - StanceVector, GlobalModulators, Goal
-- [ ] `src/rilai/contracts/council.py` - CouncilDecision, SpeechAct, VoiceResult, ResponseUrgency
-- [ ] `src/rilai/contracts/memory.py` - MemoryCandidate, EpisodicEvent, UserFact
+- [x] `src/rilai/contracts/__init__.py`
+- [x] `src/rilai/contracts/events.py` - EventKind enum, EngineEvent model
+- [x] `src/rilai/contracts/agent.py` - AgentOutput, Claim, ClaimType, AgentManifest, AgentPriority
+- [x] `src/rilai/contracts/sensor.py` - SensorOutput
+- [x] `src/rilai/contracts/workspace.py` - StanceVector, GlobalModulators, Goal
+- [x] `src/rilai/contracts/council.py` - CouncilDecision, SpeechAct, VoiceResult, ResponseUrgency
+- [x] `src/rilai/contracts/memory.py` - MemoryCandidate, EpisodicEvent, UserFact
 
 ### Verification
-- [ ] All models import without errors
-- [ ] Run `python -c "from rilai.contracts import *"`
-- [ ] Write and run unit tests
-- [ ] Verify Pydantic validation works (test with invalid data)
+- [x] All models import without errors
+- [x] Run `python -c "from rilai.contracts import *"`
+- [x] Write and run unit tests
+- [x] Verify Pydantic validation works (test with invalid data)
 
 ### Notes
 _Add any implementation notes, issues, or decisions here:_

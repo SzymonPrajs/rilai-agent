@@ -12,45 +12,45 @@
 > also update the master checklist in `00-overview.md`.
 
 ### Files to Create
-- [ ] `src/rilai/daemon/__init__.py`
-- [ ] `src/rilai/daemon/brain.py` - BrainDaemon class
-- [ ] `src/rilai/daemon/nudges.py` - NudgeChecker class
-- [ ] `src/rilai/daemon/decay.py` - ModulatorDecay class
+- [x] `src/rilai/daemon/__init__.py`
+- [x] `src/rilai/daemon/brain.py` - BrainDaemon class
+- [x] `src/rilai/daemon/nudges.py` - NudgeChecker class
+- [x] `src/rilai/daemon/decay.py` - ModulatorDecay class
 
 ### BrainDaemon Features
-- [ ] start() / stop() methods
-- [ ] _tick_loop() with configurable interval
-- [ ] _tick() applies decay and checks nudges
-- [ ] Emit DAEMON_TICK events
-- [ ] is_running property
-- [ ] get_status() for diagnostics
+- [x] start() / stop() methods
+- [x] _tick_loop() with configurable interval
+- [x] _tick() applies decay and checks nudges
+- [x] Emit DAEMON_TICK events
+- [x] is_running property
+- [x] get_status() for diagnostics
 
 ### NudgeChecker Features
-- [ ] check_all() returns nudge dict or None
-- [ ] Cooldown tracking per condition
-- [ ] high_stress_silence condition
-- [ ] deadline_approaching condition
-- [ ] rupture_unresolved condition
-- [ ] session_break condition
-- [ ] idle_checkin condition
+- [x] check_all() returns nudge dict or None
+- [x] Cooldown tracking per condition
+- [x] high_stress_silence condition
+- [x] deadline_approaching condition
+- [x] rupture_unresolved condition
+- [x] session_break condition
+- [x] idle_checkin condition
 
 ### ModulatorDecay Features
-- [ ] BASELINES for each modulator
-- [ ] DECAY_RATES for each modulator
-- [ ] apply_decay() returns DecayResult
-- [ ] apply_spike() for external events
-- [ ] get_decay_forecast() for debugging
+- [x] BASELINES for each modulator
+- [x] DECAY_RATES for each modulator
+- [x] apply_decay() returns DecayResult
+- [x] apply_spike() for external events
+- [x] get_decay_forecast() for debugging
 
 ### TUI Integration
-- [ ] Start daemon on app mount
-- [ ] Stop daemon on app unmount
-- [ ] Handle nudge callback
+- [ ] Start daemon on app mount (pending TUI integration)
+- [ ] Stop daemon on app unmount (pending TUI integration)
+- [ ] Handle nudge callback (pending TUI integration)
 
 ### Verification
-- [ ] Daemon starts and ticks
-- [ ] Modulators decay correctly
-- [ ] Nudges fire under correct conditions
-- [ ] Write and run unit tests
+- [x] Daemon starts and ticks
+- [x] Modulators decay correctly
+- [x] Nudges fire under correct conditions
+- [x] Write and run unit tests
 
 ### Notes
 _Add any implementation notes, issues, or decisions here:_

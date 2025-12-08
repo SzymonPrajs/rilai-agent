@@ -12,28 +12,28 @@
 > also update the master checklist in `00-overview.md`.
 
 ### Files to Create
-- [ ] `src/rilai/agents/__init__.py`
-- [ ] `src/rilai/agents/manifest.py` - load_manifest, load_prompt, discover_agents
-- [ ] `src/rilai/agents/base.py` - BaseAgent class with assess()
-- [ ] `src/rilai/agents/executor.py` - execute_agents (parallel)
-- [ ] `src/rilai/agents/registry.py` - AgentRegistry, get_registry
+- [x] `src/rilai/agents/__init__.py`
+- [x] `src/rilai/agents/manifest.py` - load_manifest, load_prompt, discover_agents
+- [x] `src/rilai/agents/base.py` - BaseAgent class with assess()
+- [x] `src/rilai/agents/executor.py` - execute_agents (parallel)
+- [x] `src/rilai/agents/registry.py` - AgentRegistry, get_registry
 
 ### Example Agent Prompts
-- [ ] `prompts/agents/emotion/stress.yaml` - example manifest
-- [ ] `prompts/agents/emotion/stress.md` - example prompt
+- [x] `prompts/agents/emotion/stress.yaml` - example manifest
+- [x] `prompts/agents/emotion/stress.md` - example prompt
 
 ### Agent Features
-- [ ] YAML manifest loading
-- [ ] Markdown prompt template loading
-- [ ] Structured JSON output parsing
-- [ ] Parallel execution with timeout
-- [ ] Quiet response handling
+- [x] YAML manifest loading
+- [x] Markdown prompt template loading
+- [x] Structured JSON output parsing
+- [x] Parallel execution with timeout
+- [x] Quiet response handling
 
 ### Verification
-- [ ] Agent registry loads manifests correctly
-- [ ] BaseAgent.assess() returns AgentOutput
-- [ ] execute_agents() runs in parallel
-- [ ] Write and run unit tests
+- [x] Agent registry loads manifests correctly
+- [x] BaseAgent.assess() returns AgentOutput
+- [x] execute_agents() runs in parallel
+- [x] Write and run unit tests
 
 ### v2 Files to Delete (after verification)
 - [ ] `src/rilai/agents/protocol.py`

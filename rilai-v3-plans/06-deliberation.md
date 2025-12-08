@@ -12,29 +12,29 @@
 > also update the master checklist in `00-overview.md`.
 
 ### Files to Create
-- [ ] `src/rilai/runtime/deliberation.py` - Deliberator class
-- [ ] `src/rilai/runtime/argument_graph.py` - ArgumentGraph, ConsensusResult
+- [x] `src/rilai/runtime/deliberation.py` - Deliberator class
+- [x] `src/rilai/runtime/argument_graph.py` - ArgumentGraph, ConsensusResult
 
 ### Deliberator Features
-- [ ] MAX_ROUNDS = 3 limit
-- [ ] CONSENSUS_THRESHOLD = 0.9 for early exit
-- [ ] Process initial agent outputs
-- [ ] Request focused follow-ups for contested claims
-- [ ] Emit DELIB_ROUND_STARTED/COMPLETED events
+- [x] MAX_ROUNDS = 3 limit
+- [x] CONSENSUS_THRESHOLD = 0.9 for early exit
+- [x] Process initial agent outputs
+- [x] Request focused follow-ups for contested claims
+- [x] Emit DELIB_ROUND_STARTED/COMPLETED events
 
 ### Argument Graph Features
-- [ ] add_claim() with deduplication
-- [ ] Implicit opposition detection
-- [ ] get_opposition_strength() calculation
-- [ ] get_support_strength() calculation
-- [ ] compute_consensus() with type weighting
-- [ ] get_top_claims() by salience
+- [x] add_claim() with deduplication
+- [x] Implicit opposition detection
+- [x] get_opposition_strength() calculation
+- [x] get_support_strength() calculation
+- [x] compute_consensus() with type weighting
+- [x] get_top_claims() by salience
 
 ### Verification
-- [ ] Consensus computed correctly
-- [ ] Claims properly linked (supports/opposes)
-- [ ] Early exit on high consensus
-- [ ] Write and run unit tests
+- [x] Consensus computed correctly
+- [x] Claims properly linked (supports/opposes)
+- [x] Early exit on high consensus
+- [x] Write and run unit tests
 
 ### v2 Files to Delete (after verification)
 - [ ] `src/rilai/council/deliberation.py`

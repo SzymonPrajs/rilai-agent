@@ -12,35 +12,35 @@
 > also update the master checklist in `00-overview.md`.
 
 ### Files to Create
-- [ ] `src/rilai/runtime/council.py` - Council class
-- [ ] `src/rilai/runtime/voice.py` - Voice class
-- [ ] `src/rilai/runtime/critics.py` - Critics class
+- [x] `src/rilai/runtime/council.py` - Council class
+- [x] `src/rilai/runtime/voice.py` - Voice class
+- [x] `src/rilai/runtime/critics.py` - Critics class
 
 ### Council Features
-- [ ] decide() returns CouncilDecision
-- [ ] Safety interrupt handling
-- [ ] Determine should_speak logic
-- [ ] Determine urgency from claims
-- [ ] Build SpeechAct (intent, key_points, tone, do_not)
+- [x] decide() returns CouncilDecision
+- [x] Safety interrupt handling
+- [x] Determine should_speak logic
+- [x] Determine urgency from claims
+- [x] Build SpeechAct (intent, key_points, tone, do_not)
 
 ### Voice Features
-- [ ] render() generates natural language
-- [ ] render_streaming() yields chunks
-- [ ] Build prompt from SpeechAct
-- [ ] Emit VOICE_RENDERED event
+- [x] render() generates natural language
+- [x] render_streaming() yields chunks
+- [x] Build prompt from SpeechAct
+- [x] Emit VOICE_RENDERED event
 
 ### Critics Features
-- [ ] safety_policy_critic - BLOCK unsafe content
-- [ ] coherence_critic - WARNING for off-topic
-- [ ] over_advice_critic - WARNING for witness intent
-- [ ] tone_mismatch_critic - WARNING for stressed user
-- [ ] length_critic - WARNING for too short/long
+- [x] safety_policy_critic - BLOCK unsafe content
+- [x] coherence_critic - WARNING for off-topic
+- [x] over_advice_critic - WARNING for witness intent
+- [x] tone_mismatch_critic - WARNING for stressed user
+- [x] length_critic - WARNING for too short/long
 
 ### Verification
-- [ ] Council decision logic correct
-- [ ] Voice renders appropriate responses
-- [ ] Critics detect issues correctly
-- [ ] Write and run unit tests
+- [x] Council decision logic correct
+- [x] Voice renders appropriate responses
+- [x] Critics detect issues correctly
+- [x] Write and run unit tests
 
 ### v2 Files to Delete (after verification)
 - [ ] `src/rilai/council/pipeline.py`
