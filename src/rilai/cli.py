@@ -1,4 +1,4 @@
-"""Command-line interface for Rilai v2 - Ambient Listening Mode."""
+"""Command-line interface for Rilai v2 - Cognitive Co-Processor."""
 
 import argparse
 import asyncio
@@ -8,13 +8,27 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    datefmt="%H:%M:%S",
-)
+# Configure logging (suppress for TUI, enable for CLI commands)
+def _setup_logging(verbose: bool = False) -> None:
+    level = logging.DEBUG if verbose else logging.WARNING
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        datefmt="%H:%M:%S",
+    )
+
 logger = logging.getLogger(__name__)
+
+
+def cmd_tui() -> int:
+    """Launch the interactive TUI (default command)."""
+    from rilai.tui import RilaiTUI
+    from rilai.tui.app import RealEngine
+
+    engine = RealEngine()
+    app = RilaiTUI(engine=engine)
+    app.run()
+    return 0
 
 
 def cmd_synthetic(args: argparse.Namespace) -> int:
@@ -543,10 +557,13 @@ def main() -> int:
 
     args = parser.parse_args()
 
-    # Show help if no command
+    # Launch TUI by default (no command specified)
     if args.command is None:
-        parser.print_help()
-        return 0
+        return cmd_tui()
+
+    # Set up logging for CLI commands
+    verbose = getattr(args, 'verbose', False)
+    _setup_logging(verbose)
 
     return args.func(args)
 
