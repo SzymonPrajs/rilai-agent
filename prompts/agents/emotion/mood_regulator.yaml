@@ -1,0 +1,17 @@
+id: emotion.mood_regulator
+display_name: Mood Regulator
+description: Monitors overall mood and suggests tone adjustments
+inputs:
+  - user_message
+  - conversation_history
+  - stance
+outputs:
+  - observation
+  - claims
+  - stance_delta
+cost_estimate: 500
+cooldown: 45
+priority: normal
+safety_profile: read_only
+prompt_template: mood_regulator.md
+version: 1

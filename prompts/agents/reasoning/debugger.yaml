@@ -1,0 +1,17 @@
+id: reasoning.debugger
+display_name: Reasoning Debugger
+description: Identifies logical errors and cognitive biases
+inputs:
+  - user_message
+  - conversation_history
+  - stance
+outputs:
+  - observation
+  - claims
+  - stance_delta
+cost_estimate: 600
+cooldown: 45
+priority: normal
+safety_profile: read_only
+prompt_template: debugger.md
+version: 1

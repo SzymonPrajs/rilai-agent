@@ -1,4 +1,4 @@
-"""Command-line interface for Rilai v2 - Cognitive Co-Processor."""
+"""Command-line interface for Rilai v3 - Cognitive Co-Processor."""
 
 import argparse
 import asyncio
@@ -22,12 +22,92 @@ logger = logging.getLogger(__name__)
 
 def cmd_tui() -> int:
     """Launch the interactive TUI (default command)."""
-    from rilai.tui import RilaiTUI
-    from rilai.tui.app import RealEngine
+    from rilai.ui import RilaiApp
 
-    engine = RealEngine()
-    app = RilaiTUI(engine=engine)
+    app = RilaiApp()
     app.run()
+    return 0
+
+
+def cmd_shell(args: argparse.Namespace) -> int:
+    """Run interactive shell without TUI."""
+    import uuid
+    from rilai.store import EventLogWriter
+    from rilai.runtime import TurnRunner, Workspace, Scheduler
+    from rilai.contracts.events import EventKind
+
+    db_path = Path(getattr(args, 'db', 'data/events.db'))
+
+    # Initialize v3 components
+    event_log = EventLogWriter(db_path)
+    workspace = Workspace()
+    scheduler = Scheduler()
+    turn_runner = TurnRunner(
+        event_log=event_log,
+        workspace=workspace,
+        scheduler=scheduler,
+    )
+
+    # Session management
+    session_id = str(uuid.uuid4())[:8]
+    turn_runner.set_session(session_id)
+
+    print(f"Rilai v3 Shell - Session: {session_id}")
+    print("Type 'exit' or 'quit' to exit. Type '/help' for commands.")
+    print("-" * 50)
+
+    async def process_input(user_input: str) -> None:
+        """Process a single input."""
+        async for event in turn_runner.run_turn(user_input):
+            # Show key events
+            if event.kind == EventKind.VOICE_RENDERED:
+                text = event.payload.get("text", "")
+                if text:
+                    print(f"\nRilai: {text}")
+            elif event.kind == EventKind.TURN_COMPLETED:
+                time_ms = event.payload.get("total_time_ms", 0)
+                print(f"\n[Completed in {time_ms}ms]")
+
+    async def shell_loop() -> None:
+        """Main shell loop."""
+        while True:
+            try:
+                user_input = input("\nYou: ").strip()
+
+                if not user_input:
+                    continue
+
+                if user_input.lower() in ("exit", "quit"):
+                    print("Goodbye!")
+                    break
+
+                if user_input == "/help":
+                    print("\nCommands:")
+                    print("  /help   - Show this help")
+                    print("  /status - Show session status")
+                    print("  exit    - Exit the shell")
+                    continue
+
+                if user_input == "/status":
+                    print(f"\nSession: {session_id}")
+                    print(f"Turn: {turn_runner.turn_id}")
+                    continue
+
+                await process_input(user_input)
+
+            except KeyboardInterrupt:
+                print("\n\nGoodbye!")
+                break
+            except EOFError:
+                print("\n\nGoodbye!")
+                break
+            except Exception as e:
+                print(f"\nError: {e}")
+                if getattr(args, 'verbose', False):
+                    import traceback
+                    traceback.print_exc()
+
+    asyncio.run(shell_loop())
     return 0
 
 
@@ -402,15 +482,32 @@ def main() -> int:
     """Main entry point."""
     parser = argparse.ArgumentParser(
         prog="rilai",
-        description="Rilai v2 - Ambient Cognitive Co-Processor",
+        description="Rilai v3 - Cognitive Co-Processor",
     )
     parser.add_argument(
         "--version",
         action="version",
-        version="%(prog)s 2.0.0",
+        version="%(prog)s 3.0.0",
     )
 
     subparsers = parser.add_subparsers(dest="command")
+
+    # rilai shell
+    shell_parser = subparsers.add_parser(
+        "shell",
+        help="Run interactive shell without TUI",
+    )
+    shell_parser.add_argument(
+        "--db",
+        default="data/events.db",
+        help="Path to event database (default: data/events.db)",
+    )
+    shell_parser.add_argument(
+        "-v", "--verbose",
+        action="store_true",
+        help="Verbose output (show errors)",
+    )
+    shell_parser.set_defaults(func=cmd_shell)
 
     # rilai synthetic <scenario.jsonl>
     synthetic_parser = subparsers.add_parser(

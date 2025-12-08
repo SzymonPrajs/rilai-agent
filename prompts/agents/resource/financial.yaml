@@ -1,0 +1,17 @@
+id: resource.financial
+display_name: Financial Monitor
+description: Tracks financial concerns and resource allocation
+inputs:
+  - user_message
+  - conversation_history
+  - stance
+outputs:
+  - observation
+  - claims
+  - stance_delta
+cost_estimate: 400
+cooldown: 60
+priority: normal
+safety_profile: read_only
+prompt_template: financial.md
+version: 1

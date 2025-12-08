@@ -1,0 +1,18 @@
+id: execution.executor
+display_name: Executor
+description: Executes planned actions and coordinates response generation
+inputs:
+  - user_message
+  - conversation_history
+  - stance
+  - council_decision
+outputs:
+  - observation
+  - claims
+  - stance_delta
+cost_estimate: 600
+cooldown: 0
+priority: always_on
+safety_profile: read_only
+prompt_template: executor.md
+version: 1

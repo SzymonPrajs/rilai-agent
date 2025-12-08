@@ -1,0 +1,17 @@
+id: emotion.wanting
+display_name: Wanting Detector
+description: Detects desires, needs, and wants expressed by the user
+inputs:
+  - user_message
+  - conversation_history
+  - stance
+outputs:
+  - observation
+  - claims
+  - stance_delta
+cost_estimate: 500
+cooldown: 30
+priority: always_on
+safety_profile: read_only
+prompt_template: wanting.md
+version: 1

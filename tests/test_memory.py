@@ -237,3 +237,312 @@ class TestUserModel:
         assert threads[0].text == "High priority"
         assert threads[1].text == "Medium priority"
         assert threads[2].text == "Low priority"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Consolidation Tests
+# ─────────────────────────────────────────────────────────────────────────────
+
+from rilai.memory.consolidation import (
+    ConsolidationStore,
+    MemoryConsolidator,
+    MemoryCandidate,
+    MemoryLink,
+    ConsolidationScheduler,
+)
+
+
+class TestConsolidationStore:
+    @pytest.fixture
+    def store(self):
+        with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
+            yield ConsolidationStore(Path(f.name))
+
+    def test_store_memory(self, store):
+        candidate = MemoryCandidate(
+            content="User mentioned feeling stressed",
+            source="agent:emotion",
+            significance=0.7,
+            metadata={"urgency": 2, "confidence": 3},
+        )
+
+        memory_id = store.store_memory(candidate)
+        assert memory_id == candidate.id
+
+    def test_record_and_get_access(self, store):
+        candidate = MemoryCandidate(
+            id="mem1",
+            content="Test memory",
+            source="test",
+            significance=0.5,
+        )
+        store.store_memory(candidate)
+
+        # Record accesses
+        store.record_access("mem1", "retrieval", "test context")
+        store.record_access("mem1", "retrieval")
+        store.record_access("mem1", "retrieval")
+
+        count = store.get_access_count("mem1")
+        assert count == 3
+
+    def test_get_access_since(self, store):
+        candidate = MemoryCandidate(
+            id="mem2",
+            content="Test memory",
+            source="test",
+            significance=0.5,
+        )
+        store.store_memory(candidate)
+
+        store.record_access("mem2")
+        store.record_access("mem2")
+
+        # Access count since future (should exclude past accesses)
+        future = datetime.now() + timedelta(hours=1)
+        count = store.get_access_count("mem2", since=future)
+        assert count == 0
+
+        # Total count without since filter should work
+        total_count = store.get_access_count("mem2")
+        assert total_count == 2
+
+    def test_create_and_get_links(self, store):
+        # Store two memories
+        store.store_memory(MemoryCandidate(id="m1", content="Memory 1", source="test", significance=0.5))
+        store.store_memory(MemoryCandidate(id="m2", content="Memory 2", source="test", significance=0.5))
+
+        # Create link
+        link = MemoryLink(from_id="m1", to_id="m2", relationship="supports", strength=0.8)
+        store.create_link(link)
+
+        # Get links
+        links = store.get_links("m1")
+        assert len(links) == 1
+        assert links[0].relationship == "supports"
+        assert links[0].strength == 0.8
+
+        # Links should be bidirectional in retrieval
+        links = store.get_links("m2")
+        assert len(links) == 1
+
+    def test_get_old_memories(self, store):
+        # Store old and new memories
+        old_candidate = MemoryCandidate(
+            id="old",
+            content="Old memory",
+            source="test",
+            significance=0.5,
+            created_at=datetime.now() - timedelta(days=10),
+        )
+        new_candidate = MemoryCandidate(
+            id="new",
+            content="New memory",
+            source="test",
+            significance=0.5,
+            created_at=datetime.now(),
+        )
+
+        store.store_memory(old_candidate)
+        store.store_memory(new_candidate)
+
+        # Get memories older than 5 days
+        cutoff = datetime.now() - timedelta(days=5)
+        old_memories = store.get_old_memories(cutoff)
+
+        assert len(old_memories) == 1
+        assert old_memories[0]["id"] == "old"
+
+    def test_mark_compressed(self, store):
+        # Store memories to compress
+        store.store_memory(MemoryCandidate(id="c1", content="Content 1", source="test", significance=0.5))
+        store.store_memory(MemoryCandidate(id="c2", content="Content 2", source="test", significance=0.5))
+
+        # Mark as compressed
+        store.mark_compressed(["c1", "c2"], "summary1")
+
+        # Old memories should now exclude compressed ones
+        cutoff = datetime.now() + timedelta(days=1)
+        old = store.get_old_memories(cutoff)
+        assert len(old) == 0  # Both are marked as compressed
+
+
+class TestMemoryConsolidator:
+    @pytest.fixture
+    def consolidator(self):
+        with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
+            yield MemoryConsolidator(Path(f.name), significance_threshold=0.6)
+
+    def test_add_candidate(self, consolidator):
+        candidate = MemoryCandidate(
+            content="Test memory",
+            source="test",
+            significance=0.7,
+        )
+        consolidator.add_candidate(candidate)
+        assert len(consolidator._pending_candidates) == 1
+
+    def test_add_candidates_from_assessments(self, consolidator):
+        assessments = [
+            {"output": "High urgency observation", "urgency": 3, "confidence": 2, "agent_id": "emotion"},
+            {"output": "Low urgency observation", "urgency": 1, "confidence": 1, "agent_id": "planning"},
+        ]
+        consolidator.add_candidates_from_assessments(assessments)
+        # Only high significance candidates should be added (pre-filtered at 0.3)
+        assert len(consolidator._pending_candidates) >= 1
+
+    @pytest.mark.asyncio
+    async def test_run_consolidation_promotes_significant(self, consolidator):
+        # Add a high-significance candidate
+        high_sig = MemoryCandidate(
+            content="Very important memory",
+            source="agent:emotion",
+            significance=0.8,
+        )
+        consolidator.add_candidate(high_sig)
+
+        # Add a low-significance candidate
+        low_sig = MemoryCandidate(
+            content="Unimportant memory",
+            source="agent:planning",
+            significance=0.3,
+        )
+        consolidator.add_candidate(low_sig)
+
+        result = await consolidator.run_consolidation()
+
+        assert result.items_reviewed == 2
+        assert result.items_promoted == 1  # Only high significance promoted
+        assert result.errors == []
+
+    @pytest.mark.asyncio
+    async def test_consolidation_clears_pending(self, consolidator):
+        consolidator.add_candidate(MemoryCandidate(
+            content="Test",
+            source="test",
+            significance=0.7,
+        ))
+
+        await consolidator.run_consolidation()
+
+        # Pending candidates should be cleared
+        assert len(consolidator._pending_candidates) == 0
+
+    def test_compute_access_score(self, consolidator):
+        # Store a memory and record accesses
+        candidate = MemoryCandidate(
+            id="score_test",
+            content="Test memory",
+            source="test",
+            significance=0.7,
+        )
+        consolidator.store.store_memory(candidate)
+
+        # No accesses = 0 score
+        score = consolidator.compute_access_score("score_test")
+        assert score == 0.0
+
+        # Add some accesses
+        for _ in range(5):
+            consolidator.record_access("score_test")
+
+        score = consolidator.compute_access_score("score_test")
+        assert score > 0.0
+
+    def test_link_memories(self, consolidator):
+        # Store two memories
+        consolidator.store.store_memory(MemoryCandidate(
+            id="link1",
+            content="First memory",
+            source="test",
+            significance=0.5,
+        ))
+        consolidator.store.store_memory(MemoryCandidate(
+            id="link2",
+            content="Second memory",
+            source="test",
+            significance=0.5,
+        ))
+
+        # Create link
+        consolidator.link_memories("link1", "link2", "supports", strength=0.9)
+
+        # Verify link
+        links = consolidator.get_linked_memories("link1")
+        assert len(links) == 1
+        assert links[0].relationship == "supports"
+        assert links[0].strength == 0.9
+
+    def test_significance_computation(self, consolidator):
+        # High urgency, high confidence
+        high = {"urgency": 3, "confidence": 3, "output": "Medium length output here"}
+        high_sig = consolidator._compute_significance(high)
+
+        # Low urgency, low confidence
+        low = {"urgency": 1, "confidence": 1, "output": "Short"}
+        low_sig = consolidator._compute_significance(low)
+
+        assert high_sig > low_sig
+
+
+class TestConsolidationScheduler:
+    @pytest.fixture
+    def scheduler(self):
+        with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
+            consolidator = MemoryConsolidator(Path(f.name))
+            yield ConsolidationScheduler(consolidator, interval_minutes=1)
+
+    @pytest.mark.asyncio
+    async def test_start_stop(self, scheduler):
+        await scheduler.start()
+        assert scheduler.is_running
+
+        await scheduler.stop()
+        assert not scheduler.is_running
+
+    @pytest.mark.asyncio
+    async def test_maybe_consolidate_respects_interval(self, scheduler):
+        await scheduler.start()
+
+        # First run should work
+        result = await scheduler.maybe_consolidate()
+        assert result is not None
+
+        # Second run immediately should be skipped (interval not passed)
+        result = await scheduler.maybe_consolidate()
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_force_consolidate_ignores_interval(self, scheduler):
+        await scheduler.start()
+
+        # First run
+        await scheduler.force_consolidate()
+
+        # Force should work immediately again
+        result = await scheduler.force_consolidate()
+        assert result is not None
+
+    @pytest.mark.asyncio
+    async def test_stats_tracking(self, scheduler):
+        await scheduler.start()
+
+        # Add a significant candidate to be promoted
+        scheduler.consolidator.add_candidate(MemoryCandidate(
+            content="Significant memory",
+            source="test",
+            significance=0.8,
+        ))
+
+        await scheduler.force_consolidate()
+
+        stats = scheduler.get_stats()
+        assert stats["total_runs"] == 1
+        assert stats["total_promoted"] == 1
+        assert stats["is_running"] is True
+
+    @pytest.mark.asyncio
+    async def test_not_running_returns_none(self, scheduler):
+        # Don't start the scheduler
+        result = await scheduler.maybe_consolidate()
+        assert result is None

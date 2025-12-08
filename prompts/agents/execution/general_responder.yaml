@@ -1,0 +1,17 @@
+id: execution.general_responder
+display_name: General Responder
+description: Generates general-purpose responses when no specialist applies
+inputs:
+  - user_message
+  - conversation_history
+  - stance
+outputs:
+  - observation
+  - claims
+  - stance_delta
+cost_estimate: 600
+cooldown: 0
+priority: normal
+safety_profile: read_only
+prompt_template: general_responder.md
+version: 1

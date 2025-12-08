@@ -1,0 +1,17 @@
+id: monitoring.attention
+display_name: Attention Manager
+description: Manages focus and attention allocation across the conversation
+inputs:
+  - user_message
+  - conversation_history
+  - stance
+outputs:
+  - observation
+  - claims
+  - stance_delta
+cost_estimate: 400
+cooldown: 30
+priority: always_on
+safety_profile: read_only
+prompt_template: attention.md
+version: 1

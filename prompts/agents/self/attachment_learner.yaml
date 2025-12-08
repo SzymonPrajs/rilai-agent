@@ -1,0 +1,18 @@
+id: self.attachment_learner
+display_name: Attachment Learner
+description: Learns user's attachment style over time
+inputs:
+  - user_message
+  - conversation_history
+  - stance
+  - user_facts
+outputs:
+  - observation
+  - claims
+  - stance_delta
+cost_estimate: 600
+cooldown: 90
+priority: normal
+safety_profile: read_only
+prompt_template: attachment_learner.md
+version: 1

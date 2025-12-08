@@ -1,0 +1,17 @@
+id: creative.synthesizer
+display_name: Idea Synthesizer
+description: Combines ideas into coherent wholes
+inputs:
+  - user_message
+  - conversation_history
+  - stance
+outputs:
+  - observation
+  - claims
+  - stance_delta
+cost_estimate: 600
+cooldown: 60
+priority: normal
+safety_profile: read_only
+prompt_template: synthesizer.md
+version: 1

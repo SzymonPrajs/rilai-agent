@@ -1,0 +1,17 @@
+id: reasoning.researcher
+display_name: Research Coordinator
+description: Identifies when information gathering would help
+inputs:
+  - user_message
+  - conversation_history
+  - stance
+outputs:
+  - observation
+  - claims
+  - stance_delta
+cost_estimate: 500
+cooldown: 60
+priority: normal
+safety_profile: read_only
+prompt_template: researcher.md
+version: 1

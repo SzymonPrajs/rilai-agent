@@ -1,0 +1,19 @@
+id: social.mental_model
+display_name: Mental Model Builder
+description: Builds and updates the mental model of the user
+inputs:
+  - user_message
+  - conversation_history
+  - stance
+  - user_facts
+outputs:
+  - observation
+  - claims
+  - stance_delta
+  - memory_candidates
+cost_estimate: 700
+cooldown: 60
+priority: always_on
+safety_profile: read_only
+prompt_template: mental_model.md
+version: 1

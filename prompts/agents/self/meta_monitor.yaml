@@ -1,0 +1,17 @@
+id: self.meta_monitor
+display_name: Meta Monitor
+description: Monitors user's self-awareness and metacognition
+inputs:
+  - user_message
+  - conversation_history
+  - stance
+outputs:
+  - observation
+  - claims
+  - stance_delta
+cost_estimate: 500
+cooldown: 45
+priority: normal
+safety_profile: read_only
+prompt_template: meta_monitor.md
+version: 1

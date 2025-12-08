@@ -1,0 +1,17 @@
+id: monitoring.anomaly_detector
+display_name: Anomaly Detector
+description: Detects unusual patterns or deviations from normal behavior
+inputs:
+  - user_message
+  - conversation_history
+  - stance
+outputs:
+  - observation
+  - claims
+  - stance_delta
+cost_estimate: 500
+cooldown: 30
+priority: always_on
+safety_profile: read_only
+prompt_template: anomaly_detector.md
+version: 1

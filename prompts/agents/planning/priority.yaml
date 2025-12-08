@@ -1,0 +1,18 @@
+id: planning.priority
+display_name: Priority Assessor
+description: Assesses and ranks priorities among competing demands
+inputs:
+  - user_message
+  - conversation_history
+  - stance
+  - goals
+outputs:
+  - observation
+  - claims
+  - stance_delta
+cost_estimate: 500
+cooldown: 45
+priority: normal
+safety_profile: read_only
+prompt_template: priority.md
+version: 1

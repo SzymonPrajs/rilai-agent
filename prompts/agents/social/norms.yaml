@@ -1,0 +1,17 @@
+id: social.norms
+display_name: Social Norms Monitor
+description: Monitors social norms, boundaries, and etiquette in conversation
+inputs:
+  - user_message
+  - conversation_history
+  - stance
+outputs:
+  - observation
+  - claims
+  - stance_delta
+cost_estimate: 400
+cooldown: 45
+priority: normal
+safety_profile: read_only
+prompt_template: norms.md
+version: 1

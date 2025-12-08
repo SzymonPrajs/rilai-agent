@@ -1,0 +1,18 @@
+id: planning.difference_engine
+display_name: Difference Engine
+description: Identifies gaps between current state and desired goals
+inputs:
+  - user_message
+  - conversation_history
+  - stance
+  - goals
+outputs:
+  - observation
+  - claims
+  - stance_delta
+cost_estimate: 600
+cooldown: 45
+priority: always_on
+safety_profile: read_only
+prompt_template: difference_engine.md
+version: 1

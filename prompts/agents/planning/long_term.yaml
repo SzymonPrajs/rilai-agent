@@ -1,0 +1,18 @@
+id: planning.long_term
+display_name: Long-Term Planner
+description: Tracks long-term goals and life direction
+inputs:
+  - user_message
+  - conversation_history
+  - stance
+  - goals
+outputs:
+  - observation
+  - claims
+  - stance_delta
+cost_estimate: 600
+cooldown: 60
+priority: normal
+safety_profile: read_only
+prompt_template: long_term.md
+version: 1

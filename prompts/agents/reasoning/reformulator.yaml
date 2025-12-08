@@ -1,0 +1,17 @@
+id: reasoning.reformulator
+display_name: Problem Reformulator
+description: Reframes problems for fresh perspectives
+inputs:
+  - user_message
+  - conversation_history
+  - stance
+outputs:
+  - observation
+  - claims
+  - stance_delta
+cost_estimate: 600
+cooldown: 60
+priority: normal
+safety_profile: read_only
+prompt_template: reformulator.md
+version: 1

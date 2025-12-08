@@ -1,0 +1,18 @@
+id: execution.output_filter
+display_name: Output Filter
+description: Filters and refines output before delivery
+inputs:
+  - user_message
+  - conversation_history
+  - stance
+  - draft_response
+outputs:
+  - observation
+  - claims
+  - stance_delta
+cost_estimate: 400
+cooldown: 0
+priority: always_on
+safety_profile: read_only
+prompt_template: output_filter.md
+version: 1

@@ -1,0 +1,17 @@
+id: creative.brainstormer
+display_name: Brainstormer
+description: Generates diverse ideas and options
+inputs:
+  - user_message
+  - conversation_history
+  - stance
+outputs:
+  - observation
+  - claims
+  - stance_delta
+cost_estimate: 600
+cooldown: 60
+priority: normal
+safety_profile: read_only
+prompt_template: brainstormer.md
+version: 1
