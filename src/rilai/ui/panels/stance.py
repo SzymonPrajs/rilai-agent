@@ -9,7 +9,7 @@ class StancePanel(Static):
     """Panel showing stance vector."""
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__("No stance data", **kwargs)
         self._stance = {}
         self._changes = {}
 
@@ -17,9 +17,9 @@ class StancePanel(Static):
         """Update stance display."""
         self._stance = stance
         self._changes = changes or {}
-        self._render()
+        self._refresh_display()
 
-    def _render(self) -> None:
+    def _refresh_display(self) -> None:
         """Render the stance table."""
         if not self._stance:
             self.update("No stance data")

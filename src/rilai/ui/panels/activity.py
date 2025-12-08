@@ -39,7 +39,7 @@ class ActivityPanel(Static):
     }
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__("○ Ready", **kwargs)
         self._stage = "idle"
         self._processing = False
         self._last_time = None
@@ -53,9 +53,9 @@ class ActivityPanel(Static):
         if "total_time_ms" in payload:
             self._last_time = payload["total_time_ms"]
 
-        self._render()
+        self._refresh_display()
 
-    def _render(self) -> None:
+    def _refresh_display(self) -> None:
         """Render the activity indicator."""
         stage_name = self.STAGE_NAMES.get(self._stage, self._stage)
         icon = self.STAGE_ICONS.get(self._stage.split("_r")[0], "●")

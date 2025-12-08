@@ -8,15 +8,15 @@ class SensorsPanel(Static):
     """Panel showing fast sensor readings."""
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__("No sensors", **kwargs)
         self._sensors = {}
 
     def update_sensors(self, sensors: dict) -> None:
         """Update sensor display."""
         self._sensors.update(sensors)
-        self._render()
+        self._refresh_display()
 
-    def _render(self) -> None:
+    def _refresh_display(self) -> None:
         """Render the sensors table."""
         if not self._sensors:
             self.update("No sensors")

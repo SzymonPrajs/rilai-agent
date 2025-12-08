@@ -9,7 +9,7 @@ class CriticsPanel(Static):
     """Panel showing critic validation results."""
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__("No critic results", **kwargs)
         self._results = []
         self._passed = True
 
@@ -17,9 +17,9 @@ class CriticsPanel(Static):
         """Update critic results."""
         self._results = results
         self._passed = passed
-        self._render()
+        self._refresh_display()
 
-    def _render(self) -> None:
+    def _refresh_display(self) -> None:
         """Render the critics table."""
         if not self._results:
             self.update(Text("No critic results", style="dim"))
