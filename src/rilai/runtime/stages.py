@@ -299,11 +299,23 @@ async def run_council(
     else:
         workspace.active_claims = []
 
-    council = Council(emit_fn=runner._emit)
-    voice = Voice(emit_fn=runner._emit)
+    # Create council/voice with no-op emit - we yield events ourselves
+    council = Council(emit_fn=lambda k, p: None)
+    voice = Voice(emit_fn=lambda k, p: None)
 
     # Make decision
     decision = await council.decide(workspace)
+
+    # Yield the council decision event
+    yield runner._emit(
+        EventKind.COUNCIL_DECISION_MADE,
+        {
+            "speak": decision.speak,
+            "urgency": decision.urgency,
+            "intent": decision.speech_act.intent if decision.speech_act else None,
+            "thinking": decision.thinking,
+        },
+    )
 
     # Set workspace state from decision
     if decision.speech_act:
@@ -314,7 +326,16 @@ async def run_council(
         # Render response via Voice (makes LLM call)
         result = await voice.render(decision, workspace)
         workspace.current_response = result.text
-        # Voice.render already emits VOICE_RENDERED event
+
+        # Yield the voice rendered event
+        yield runner._emit(
+            EventKind.VOICE_RENDERED,
+            {
+                "text": result.text,
+                "intent": decision.speech_act.intent if decision.speech_act else None,
+                "token_count": result.token_count,
+            },
+        )
     else:
         workspace.current_response = ""
         yield runner._emit(
@@ -369,7 +390,8 @@ async def run_critics(
         )
         return
 
-    critics = Critics(emit_fn=runner._emit)
+    # Create critics without emit callback - we'll yield the event ourselves
+    critics = Critics(emit_fn=lambda k, p: None)  # No-op emit
 
     # Reconstruct minimal decision for critics
     decision = CouncilDecision(
@@ -384,15 +406,29 @@ async def run_critics(
         thinking="",
     )
 
-    # Critics.validate() emits the CRITICS_UPDATED event
+    # Run validation
     passed, results = await critics.validate(
         workspace.current_response,
         workspace,
         decision,
     )
-    # Event already emitted by critics.validate(), yield nothing extra
-    return
-    yield  # Make this an async generator
+
+    # Yield the event so it flows through the generator chain to TUI
+    yield runner._emit(
+        EventKind.CRITICS_UPDATED,
+        {
+            "passed": passed,
+            "results": [
+                {
+                    "critic_id": r.critic_id,
+                    "passed": r.passed,
+                    "severity": r.severity.value,
+                    "message": r.message,
+                }
+                for r in results
+            ],
+        },
+    )
 
 
 # ─────────────────────────────────────────────────────────────────────────────

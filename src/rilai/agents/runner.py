@@ -7,7 +7,9 @@ hypotheses, questions, and glimpses.
 """
 
 import asyncio
+import json
 import logging
+import re
 from pathlib import Path
 
 import yaml
@@ -23,6 +25,68 @@ from rilai.core.stance import StanceVector
 from rilai.providers.openrouter import OpenRouterClient
 
 logger = logging.getLogger(__name__)
+
+
+def repair_json(text: str) -> str:
+    """Attempt to repair malformed JSON from LLM output.
+
+    Common issues:
+    - Trailing commas
+    - Missing closing braces/brackets
+    - Unterminated strings
+    """
+    # Remove trailing commas before } or ]
+    text = re.sub(r',\s*([}\]])', r'\1', text)
+
+    # Count braces and brackets
+    open_braces = text.count('{') - text.count('}')
+    open_brackets = text.count('[') - text.count(']')
+
+    # Add missing closing brackets/braces
+    text = text.rstrip()
+    if open_brackets > 0:
+        text += ']' * open_brackets
+    if open_braces > 0:
+        text += '}' * open_braces
+
+    # Try to fix unterminated strings by finding unclosed quotes
+    # This is a heuristic - look for odd number of quotes in a value position
+    # Simple approach: if we have an odd number of unescaped quotes, add one at the end
+    quote_count = len(re.findall(r'(?<!\\)"', text))
+    if quote_count % 2 == 1:
+        # Find the last key-value and try to close the string
+        # Look for pattern like "key": "value without closing
+        match = re.search(r'"[^"]*":\s*"[^"]*$', text)
+        if match:
+            text = text + '"'
+
+    return text
+
+
+def extract_json_fields(text: str) -> dict:
+    """Fallback: extract key fields via regex when JSON parsing fails entirely."""
+    result = {
+        "salience": 0.0,
+        "stance_delta": {},
+        "hypotheses": [],
+        "questions": [],
+        "glimpse": "",
+    }
+
+    # Extract salience
+    salience_match = re.search(r'"salience"\s*:\s*([\d.]+)', text)
+    if salience_match:
+        try:
+            result["salience"] = float(salience_match.group(1))
+        except ValueError:
+            pass
+
+    # Extract glimpse
+    glimpse_match = re.search(r'"glimpse"\s*:\s*"([^"]*)"', text)
+    if glimpse_match:
+        result["glimpse"] = glimpse_match.group(1)
+
+    return result
 
 # Load catalog
 CATALOG_PATH = Path(__file__).parent / "catalog.yaml"
@@ -109,8 +173,6 @@ async def run_single_agent(
     Returns:
         MicroAgentOutput with salience, deltas, hypotheses, questions, glimpse
     """
-    import json
-
     agent_id = agent_config["id"]
     tier = agent_config.get("tier", "tiny")
 
@@ -142,7 +204,20 @@ async def run_single_agent(
         elif "```" in content:
             content = content.split("```")[1].split("```")[0].strip()
 
-        data = json.loads(content)
+        # Try parsing JSON with repair fallback
+        data = None
+        try:
+            data = json.loads(content)
+        except json.JSONDecodeError:
+            # Try repairing the JSON
+            repaired = repair_json(content)
+            try:
+                data = json.loads(repaired)
+                logger.debug(f"Agent {agent_id}: JSON repaired successfully")
+            except json.JSONDecodeError:
+                # Fall back to regex extraction
+                data = extract_json_fields(content)
+                logger.debug(f"Agent {agent_id}: Used regex fallback for JSON")
 
         # Build output
         hypotheses = [

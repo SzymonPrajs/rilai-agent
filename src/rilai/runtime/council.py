@@ -48,7 +48,7 @@ class Council:
         claims_analysis = self._analyze_claims(workspace.active_claims)
 
         # Determine if we should speak
-        should_speak = self._should_speak(workspace, claims_analysis)
+        should_speak = await self._should_speak(workspace, claims_analysis)
 
         if not should_speak:
             decision = CouncilDecision(
@@ -124,9 +124,12 @@ class Council:
         analysis["avg_confidence"] = sum(c.confidence for c in claims) / len(claims)
         return analysis
 
-    def _should_speak(self, workspace: "Workspace", analysis: dict) -> bool:
-        """Determine if we should respond."""
-        # Always respond if there are concerns or questions
+    async def _should_speak(self, workspace: "Workspace", analysis: dict) -> bool:
+        """Determine if we should respond using LLM-based engagement detection."""
+        import logging
+        logger = logging.getLogger(__name__)
+
+        # Always respond if there are concerns or questions from agents
         if analysis["concerns"] or analysis["questions"]:
             return True
 
@@ -138,17 +141,58 @@ class Council:
         if analysis["recommendations"]:
             return True
 
-        # Check if user message is a question
+        # Use LLM to detect if message warrants a response
+        # This replaces hardcoded keyword matching with semantic understanding
         user_msg = workspace.user_message.strip()
+
+        try:
+            from rilai.providers.openrouter import get_provider, Message
+            from rilai.config import get_config
+
+            provider = get_provider()
+            config = get_config()
+            model = config.MODELS.get("tiny", config.MODELS.get("small"))
+
+            response = await provider.complete(
+                messages=[
+                    Message(
+                        role="system",
+                        content="You are a conversation analyzer. Answer YES or NO only.",
+                    ),
+                    Message(
+                        role="user",
+                        content=f"""Does this message expect, invite, or warrant a conversational response?
+Consider: Is it a question? A greeting? An invitation to chat? A request? Something that would be rude to ignore?
+
+Message: "{user_msg}"
+
+Answer YES or NO:""",
+                    ),
+                ],
+                model=model,
+                max_tokens=10,
+            )
+
+            answer = response.content.strip().upper()
+            if "YES" in answer:
+                return True
+            elif "NO" in answer:
+                return False
+            # LLM gave unclear answer - fall through to pattern matching
+
+        except Exception as e:
+            logger.warning(f"Engagement detector failed: {e}, using pattern fallback")
+
+        # Pattern-based fallback when LLM unavailable or unclear
+        # Check for questions (ends with ?)
         if user_msg.endswith("?"):
             return True
-
-        # Check for greetings or direct address
+        # Check for greetings
         greeting_words = ["hi", "hello", "hey", "morning", "evening", "rilai"]
         if any(word in user_msg.lower().split() for word in greeting_words):
             return True
 
-        # Don't respond to pure statements with low salience
+        # Final fallback: respond if any agent found something noteworthy
         return analysis["max_urgency"] > 0
 
     def _determine_urgency(self, workspace: "Workspace", analysis: dict) -> ResponseUrgency:
