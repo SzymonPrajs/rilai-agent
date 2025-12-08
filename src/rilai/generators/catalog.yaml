@@ -1,0 +1,73 @@
+# Focused Generators Catalog
+# 6 generators for Pass-2 response candidate generation
+#
+# These generators condition on the WorkspacePacket and produce
+# user-facing responses according to their goal.
+
+focused_generators:
+
+  - id: witnesser
+    tier: medium
+    goal: WITNESS
+    job: |
+      One contact sentence + permission + gentle warmth. No advice.
+      Stay with the emotion before doing anything else.
+    style_notes:
+      - Keep it to 2-3 sentences max
+      - One concrete reference to user's words
+      - End with permission or gentle presence
+
+  - id: inquirer
+    tier: medium
+    goal: INVITE
+    job: |
+      Ask one discriminating question that changes the space.
+      Avoid "tell me more" vagueness.
+    style_notes:
+      - Maximum ONE question
+      - Question should reveal something new
+      - Brief setup before the question
+
+  - id: reframer
+    tier: medium
+    goal: REFRAME
+    job: |
+      Offer one optional reframe after witnessing.
+      Present as possibility, not correction.
+    style_notes:
+      - Witness first, then reframe
+      - Use tentative language ("What if...", "I wonder...")
+      - Don't invalidate original view
+
+  - id: optioner
+    tier: medium
+    goal: OPTIONS
+    job: |
+      Only when advice requested; give 2-4 reversible options.
+      Confirm consent first.
+    style_notes:
+      - Maximum 4 options
+      - Keep options reversible and small
+      - Ask before delivering if vulnerability is high
+
+  - id: meta_answerer
+    tier: medium
+    goal: META
+    job: |
+      Brief truth about AI-feelings question + return to user.
+      For rupture: acknowledge miss + propose repair.
+    style_notes:
+      - Keep meta-talk short (1-2 sentences)
+      - Be honest about AI nature without being cold
+      - Return to user's content quickly
+
+  - id: boundary_responder
+    tier: large
+    goal: BOUNDARY
+    job: |
+      Safety/role boundaries; calm, clear, supportive.
+      Maintain warmth while being firm.
+    style_notes:
+      - Safety first, always
+      - Offer alternatives within constraints
+      - Encourage real-world support when appropriate

@@ -1,4 +1,4 @@
-"""Memory module - working, short-term, and database storage."""
+"""Memory module - working, short-term, database, and relational storage."""
 
 from .database import (
     AgentCallRecord,
@@ -14,16 +14,31 @@ from .short_term import (
     StoredMessage,
     StoredTurn,
 )
+from .relational import (
+    EvidenceShard,
+    RelationalHypothesis,
+    RelationshipMemory,
+    RelationalMemoryStore,
+    create_memory_store,
+)
 
 __all__ = [
+    # Database storage
     "AgentCallRecord",
     "CouncilCallRecord",
     "Database",
     "MessageRecord",
     "ModelCallRecord",
+    "TurnRecord",
+    # Short-term memory
     "SessionData",
     "ShortTermMemory",
     "StoredMessage",
     "StoredTurn",
-    "TurnRecord",
+    # Relational memory (evidence-linked)
+    "EvidenceShard",
+    "RelationalHypothesis",
+    "RelationshipMemory",
+    "RelationalMemoryStore",
+    "create_memory_store",
 ]

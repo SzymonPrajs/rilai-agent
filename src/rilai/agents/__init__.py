@@ -1,17 +1,28 @@
-"""Agents module - LLM-based evaluators."""
+"""Agents module - LLM-based evaluators and micro-agents."""
 
-from .base import BaseAgent, LLMAgent
-from .loader import PromptLoader, prompt_loader
-from .protocol import PROMPTS_DIR, Agent, AgentConfig, AgencyConfig, WorkingMemoryView
+# New micro-agent architecture (primary)
+from .micro import (
+    MicroAgentOutput,
+    MicroHypothesis,
+    MicroQuestion,
+    merge_stance_deltas,
+    select_top_agents,
+    AGENT_GROUPS,
+)
+from .runner import MicroAgentRunner, run_agent_ensemble
+
+# Legacy imports are deferred to avoid circular imports
+# Use: from rilai.agents.base import LLMAgent
+# Use: from rilai.agents.protocol import Agent, AgentConfig
 
 __all__ = [
-    "Agent",
-    "AgentConfig",
-    "AgencyConfig",
-    "BaseAgent",
-    "LLMAgent",
-    "PROMPTS_DIR",
-    "PromptLoader",
-    "WorkingMemoryView",
-    "prompt_loader",
+    # Micro-agents (new architecture)
+    "MicroAgentOutput",
+    "MicroHypothesis",
+    "MicroQuestion",
+    "merge_stance_deltas",
+    "select_top_agents",
+    "AGENT_GROUPS",
+    "MicroAgentRunner",
+    "run_agent_ensemble",
 ]

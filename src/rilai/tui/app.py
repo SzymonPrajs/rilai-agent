@@ -1,8 +1,12 @@
-"""Main Rilai TUI application."""
+"""Main Rilai TUI application.
+
+Split-screen layout with conversation panel and cognitive state inspector.
+Based on Industrial/Neuroscience Dashboard aesthetic.
+"""
 
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from textual import on
 from textual.app import App, ComposeResult
@@ -10,108 +14,173 @@ from textual.containers import Horizontal, Vertical
 from textual.widgets import Footer, Header, Static
 
 from .commands import handle_command
-from .widgets import AgencyStatus, ChatInput, ChatPanel, ModulatorsPanel, ThinkingPanel
+from .widgets import (
+    AgencyStatus, ChatInput, ChatPanel, ModulatorsPanel, ThinkingPanel,
+    StateInspector, TurnState,
+)
 
 from rilai.core.engine import Engine
 from rilai.core.events import event_bus, Event, EventType
 
 
 class RilaiApp(App):
-    """Rilai v2 Terminal User Interface."""
+    """Rilai v2 Terminal User Interface.
+
+    Split-screen layout:
+    - Left (50%): Conversation panel
+    - Right (50%): Cognitive state inspector
+
+    The state inspector shows hierarchical views of:
+    - Stance Vector (affective state)
+    - Sensors (9 input detectors)
+    - Micro-Agents (30 cognitive processes)
+    - Workspace Packet (global broadcast)
+    - Critics (validation layer)
+    - Relational Memory (evidence-linked)
+    """
 
     TITLE = "Rilai v2"
-    SUB_TITLE = "Cognitive Architecture"
+    SUB_TITLE = "Two-Pass Broadcast Architecture"
 
     CSS = """
     Screen {
         layout: horizontal;
+        background: #1A1A2E;
     }
 
-    #main-area {
-        width: 3fr;
+    /* Split-screen layout: 50/50 */
+    #conversation-panel {
+        width: 50%;
         height: 100%;
+        border-right: solid #2E2E4D;
     }
 
-    #sidebar {
-        width: 1fr;
-        min-width: 30;
-        max-width: 40;
+    #state-inspector {
+        width: 50%;
         height: 100%;
-        padding: 0;
+        background: #16213E;
+        overflow-y: auto;
+        padding: 0 1;
     }
 
+    /* Chat styling */
     ChatPanel {
         height: 100%;
+        background: #16213E;
     }
 
-    AgencyStatus {
+    /* Status bar at top */
+    #status-bar {
+        dock: top;
+        height: 1;
+        background: #0F0F1A;
+        color: #6B7280;
+        padding: 0 1;
+    }
+
+    /* State inspector sections */
+    StanceVectorWidget {
+        border: solid #F5A623;
+        border-title-color: #F5A623;
+        margin-bottom: 1;
+    }
+
+    SensorPanelWidget {
+        border: solid #7ED321;
+        border-title-color: #7ED321;
+        margin-bottom: 1;
+    }
+
+    MicroAgentsTree {
+        border: solid #50E3C2;
+        border-title-color: #50E3C2;
+        margin-bottom: 1;
         height: auto;
         max-height: 15;
     }
 
-    ModulatorsPanel {
-        height: auto;
+    WorkspaceCollapsible {
+        border: solid #F8E71C;
+        border-title-color: #F8E71C;
+        margin-bottom: 1;
     }
 
-    ThinkingPanel {
-        height: 1fr;
+    CriticsCollapsible {
+        border: solid #BD10E0;
+        border-title-color: #BD10E0;
+        margin-bottom: 1;
     }
 
-    #daemon-status {
-        dock: top;
-        height: 1;
-        background: $surface;
-        color: $text-muted;
-        padding: 0 1;
-        text-align: right;
+    MemoryCollapsible {
+        border: solid #4A90D9;
+        border-title-color: #4A90D9;
+        margin-bottom: 1;
+    }
+
+    /* Legacy sidebar (hidden by default, can be toggled) */
+    #legacy-sidebar {
+        display: none;
+        width: 0;
+    }
+
+    #legacy-sidebar.visible {
+        display: block;
+        width: 30;
     }
     """
 
     BINDINGS = [
         ("ctrl+d", "quit", "Quit"),
-        ("ctrl+a", "toggle_agencies", "Agencies"),
-        ("ctrl+t", "toggle_thinking", "Thinking"),
+        ("ctrl+i", "toggle_inspector", "Inspector"),
+        ("ctrl+l", "toggle_legacy", "Legacy View"),
         ("ctrl+h", "toggle_history", "History"),
         ("escape", "focus_input", "Focus Input"),
     ]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._chat_panel: ChatPanel | None = None
-        self._agency_status: AgencyStatus | None = None
-        self._modulators: ModulatorsPanel | None = None
-        self._thinking: ThinkingPanel | None = None
-        self._daemon_status: Static | None = None
+        self._chat_panel: Optional[ChatPanel] = None
+        self._state_inspector: Optional[StateInspector] = None
+        self._status_bar: Optional[Static] = None
+
+        # Legacy widgets (optional)
+        self._agency_status: Optional[AgencyStatus] = None
+        self._modulators: Optional[ModulatorsPanel] = None
+        self._thinking: Optional[ThinkingPanel] = None
 
         # State
         self.daemon_running = False
         self.quiet_mode = False
-        self._scheduler = None
         self._engine = None
+        self._current_turn_state = TurnState()
 
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
         yield Header()
 
+        # Status bar
+        self._status_bar = Static(
+            "Turn: 0 | Stance: neutral | Goal: witness",
+            id="status-bar"
+        )
+        yield self._status_bar
+
         with Horizontal():
-            # Main chat area
-            with Vertical(id="main-area"):
+            # Left: Conversation panel
+            with Vertical(id="conversation-panel"):
                 self._chat_panel = ChatPanel()
                 yield self._chat_panel
 
-            # Sidebar
-            with Vertical(id="sidebar"):
-                self._daemon_status = Static(
-                    "[Daemon: ○]", id="daemon-status"
-                )
-                yield self._daemon_status
+            # Right: State inspector
+            self._state_inspector = StateInspector(id="state-inspector")
+            yield self._state_inspector
 
+            # Legacy sidebar (hidden by default)
+            with Vertical(id="legacy-sidebar"):
                 self._agency_status = AgencyStatus()
                 yield self._agency_status
-
                 self._modulators = ModulatorsPanel()
                 yield self._modulators
-
                 self._thinking = ThinkingPanel()
                 yield self._thinking
 
@@ -200,15 +269,17 @@ class RilaiApp(App):
 
     # Panel toggles
 
-    def toggle_agencies(self) -> None:
-        """Toggle agency panel."""
-        if self._agency_status:
-            self._agency_status.toggle()
+    def toggle_inspector(self) -> None:
+        """Toggle state inspector visibility."""
+        inspector = self.query_one("#state-inspector", StateInspector)
+        if inspector:
+            inspector.display = not inspector.display
 
-    def toggle_thinking(self) -> None:
-        """Toggle thinking panel."""
-        if self._thinking:
-            self._thinking.toggle()
+    def toggle_legacy(self) -> None:
+        """Toggle legacy sidebar visibility."""
+        sidebar = self.query_one("#legacy-sidebar")
+        if sidebar:
+            sidebar.toggle_class("visible")
 
     def toggle_quiet_mode(self) -> None:
         """Toggle quiet mode."""
@@ -216,13 +287,13 @@ class RilaiApp(App):
 
     # Actions
 
-    def action_toggle_agencies(self) -> None:
-        """Toggle agency status panel visibility."""
-        self.toggle_agencies()
+    def action_toggle_inspector(self) -> None:
+        """Toggle state inspector visibility."""
+        self.toggle_inspector()
 
-    def action_toggle_thinking(self) -> None:
-        """Toggle thinking panel visibility."""
-        self.toggle_thinking()
+    def action_toggle_legacy(self) -> None:
+        """Toggle legacy sidebar visibility."""
+        self.toggle_legacy()
 
     def action_toggle_history(self) -> None:
         """Open history browser."""
@@ -234,21 +305,26 @@ class RilaiApp(App):
         if self._chat_panel:
             self._chat_panel.focus_input()
 
-    # Daemon control
+    # State inspector updates
 
-    async def start_daemon(self) -> None:
-        """Start the background daemon."""
-        # TODO: Wire up actual scheduler
-        self.daemon_running = True
-        if self._daemon_status:
-            self._daemon_status.update("[Daemon: ●]")
+    def update_turn_state(self, state: TurnState) -> None:
+        """Update the state inspector with new turn state."""
+        if self._state_inspector:
+            self._state_inspector.update_turn_state(state)
 
-    async def stop_daemon(self) -> None:
-        """Stop the background daemon."""
-        # TODO: Wire up actual scheduler
-        self.daemon_running = False
-        if self._daemon_status:
-            self._daemon_status.update("[Daemon: ○]")
+        # Update status bar
+        if self._status_bar:
+            goal = state.workspace.get("goal", "witness") if state.workspace else "witness"
+            stance_summary = "neutral"
+            if state.stance:
+                valence = state.stance.get("valence", 0)
+                if valence > 0.3:
+                    stance_summary = "positive"
+                elif valence < -0.3:
+                    stance_summary = "negative"
+            self._status_bar.update(
+                f"Turn: {state.turn_id} | Stance: {stance_summary} | Goal: {goal}"
+            )
 
     # Event handlers for engine integration
 
