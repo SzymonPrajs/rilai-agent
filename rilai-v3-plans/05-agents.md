@@ -6,6 +6,45 @@
 
 ---
 
+## Implementation Checklist
+
+> **Instructions:** Mark items with `[x]` when complete. After completing items here,
+> also update the master checklist in `00-overview.md`.
+
+### Files to Create
+- [ ] `src/rilai/agents/__init__.py`
+- [ ] `src/rilai/agents/manifest.py` - load_manifest, load_prompt, discover_agents
+- [ ] `src/rilai/agents/base.py` - BaseAgent class with assess()
+- [ ] `src/rilai/agents/executor.py` - execute_agents (parallel)
+- [ ] `src/rilai/agents/registry.py` - AgentRegistry, get_registry
+
+### Example Agent Prompts
+- [ ] `prompts/agents/emotion/stress.yaml` - example manifest
+- [ ] `prompts/agents/emotion/stress.md` - example prompt
+
+### Agent Features
+- [ ] YAML manifest loading
+- [ ] Markdown prompt template loading
+- [ ] Structured JSON output parsing
+- [ ] Parallel execution with timeout
+- [ ] Quiet response handling
+
+### Verification
+- [ ] Agent registry loads manifests correctly
+- [ ] BaseAgent.assess() returns AgentOutput
+- [ ] execute_agents() runs in parallel
+- [ ] Write and run unit tests
+
+### v2 Files to Delete (after verification)
+- [ ] `src/rilai/agents/protocol.py`
+- [ ] `src/rilai/agents/base.py` (old LLMAgent)
+- [ ] `src/rilai/agencies/` (entire folder)
+
+### Notes
+_Add any implementation notes, issues, or decisions here:_
+
+---
+
 ## Overview
 
 Agents are redesigned from v2's freeform output to structured JSON.

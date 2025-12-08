@@ -6,6 +6,31 @@
 
 ---
 
+## Implementation Checklist
+
+> **Instructions:** Mark items with `[x]` when complete. After completing items here,
+> also update the master checklist in `00-overview.md`.
+
+### Files to Create
+- [ ] `src/rilai/contracts/__init__.py`
+- [ ] `src/rilai/contracts/events.py` - EventKind enum, EngineEvent model
+- [ ] `src/rilai/contracts/agent.py` - AgentOutput, Claim, ClaimType, AgentManifest, AgentPriority
+- [ ] `src/rilai/contracts/sensor.py` - SensorOutput
+- [ ] `src/rilai/contracts/workspace.py` - StanceVector, GlobalModulators, Goal
+- [ ] `src/rilai/contracts/council.py` - CouncilDecision, SpeechAct, VoiceResult, ResponseUrgency
+- [ ] `src/rilai/contracts/memory.py` - MemoryCandidate, EpisodicEvent, UserFact
+
+### Verification
+- [ ] All models import without errors
+- [ ] Run `python -c "from rilai.contracts import *"`
+- [ ] Write and run unit tests
+- [ ] Verify Pydantic validation works (test with invalid data)
+
+### Notes
+_Add any implementation notes, issues, or decisions here:_
+
+---
+
 ## Overview
 
 The contracts module defines all typed schemas used throughout v3. These are the "law" of the system - every component must use these exact types.

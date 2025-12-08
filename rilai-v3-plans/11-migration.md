@@ -6,6 +6,73 @@
 
 ---
 
+## Implementation Checklist
+
+> **Instructions:** Mark items with `[x]` when complete. After completing items here,
+> also update the master checklist in `00-overview.md`.
+
+### Pre-Migration
+- [ ] Create `v2-archive` branch
+- [ ] Push archive branch to origin
+- [ ] Create `v3-migration` branch
+
+### Database Migration
+- [ ] Create events.db with schema
+- [ ] Create memory.db with schema
+- [ ] Run migration script (if data to preserve)
+
+### Agent Prompts (49 total)
+- [ ] Emotion agents (5): stress, wellbeing, motivation, mood_regulator, wanting
+- [ ] Social agents (5): relationships, empathy, norms, attachment_detector, mental_model
+- [ ] Planning agents (4): difference_engine, short_term, long_term, priority
+- [ ] Resource agents (3): financial, time, energy
+- [ ] Self agents (6): identity, values, meta_monitor, attachment_learner, reflection, self_model
+- [ ] Reasoning agents (6): debugger, researcher, reformulator, analogizer, creative, magnitude
+- [ ] Creative agents (3): brainstormer, synthesizer, frame_builder
+- [ ] Inhibition agents (3): censor, suppressor, exception_handler
+- [ ] Monitoring agents (4): trigger_watcher, anomaly_detector, interrupt_manager, attention
+- [ ] Execution agents (6): executor, habits, script_runner, context_manager, output_filter, general_responder
+
+### File Cleanup
+- [ ] Delete `src/rilai/core/` folder
+- [ ] Delete `src/rilai/agencies/` folder
+- [ ] Delete `src/rilai/council/` folder
+- [ ] Delete `src/rilai/brain/` folder
+- [ ] Delete old `src/rilai/tui/` folder
+- [ ] Delete `src/rilai/agents/protocol.py`
+- [ ] Delete `src/rilai/memory/database.py`
+- [ ] Delete `src/rilai/memory/short_term.py`
+- [ ] Delete `src/rilai/observability/store.py`
+- [ ] Delete `src/rilai/sensors/runner.py`
+- [ ] Delete `data/current/` folder
+
+### Update Files
+- [ ] Update `pyproject.toml` version to 3.0.0
+- [ ] Update any remaining imports
+
+### Final Verification
+- [ ] `rilai` starts TUI with streaming updates
+- [ ] `rilai shell` works with event-sourced pipeline
+- [ ] All panels update in real-time
+- [ ] Event log is replayable
+- [ ] Background daemon emits proactive nudges
+- [ ] Memory retrieval injects context
+- [ ] All agents output structured JSON
+- [ ] No dual-write - single SQLite event log
+- [ ] All unit tests pass
+- [ ] Integration tests pass
+
+### Git Cleanup
+- [ ] Commit all changes
+- [ ] Merge to main (after testing)
+- [ ] Tag `v3.0.0`
+- [ ] Push tags
+
+### Notes
+_Add any implementation notes, issues, or decisions here:_
+
+---
+
 ## Overview
 
 This document provides the complete migration checklist for transitioning from Rilai v2 to v3. It covers:

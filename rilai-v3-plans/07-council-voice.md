@@ -6,6 +6,52 @@
 
 ---
 
+## Implementation Checklist
+
+> **Instructions:** Mark items with `[x]` when complete. After completing items here,
+> also update the master checklist in `00-overview.md`.
+
+### Files to Create
+- [ ] `src/rilai/runtime/council.py` - Council class
+- [ ] `src/rilai/runtime/voice.py` - Voice class
+- [ ] `src/rilai/runtime/critics.py` - Critics class
+
+### Council Features
+- [ ] decide() returns CouncilDecision
+- [ ] Safety interrupt handling
+- [ ] Determine should_speak logic
+- [ ] Determine urgency from claims
+- [ ] Build SpeechAct (intent, key_points, tone, do_not)
+
+### Voice Features
+- [ ] render() generates natural language
+- [ ] render_streaming() yields chunks
+- [ ] Build prompt from SpeechAct
+- [ ] Emit VOICE_RENDERED event
+
+### Critics Features
+- [ ] safety_policy_critic - BLOCK unsafe content
+- [ ] coherence_critic - WARNING for off-topic
+- [ ] over_advice_critic - WARNING for witness intent
+- [ ] tone_mismatch_critic - WARNING for stressed user
+- [ ] length_critic - WARNING for too short/long
+
+### Verification
+- [ ] Council decision logic correct
+- [ ] Voice renders appropriate responses
+- [ ] Critics detect issues correctly
+- [ ] Write and run unit tests
+
+### v2 Files to Delete (after verification)
+- [ ] `src/rilai/council/pipeline.py`
+- [ ] `src/rilai/council/synthesizer.py`
+- [ ] `src/rilai/council/voice.py`
+
+### Notes
+_Add any implementation notes, issues, or decisions here:_
+
+---
+
 ## Overview
 
 The Council takes the workspace state and top claims from deliberation to make a decision about whether and how to respond. The Voice module then renders that decision into natural language.

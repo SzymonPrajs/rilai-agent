@@ -6,6 +6,45 @@
 
 ---
 
+## Implementation Checklist
+
+> **Instructions:** Mark items with `[x]` when complete. After completing items here,
+> also update the master checklist in `00-overview.md`.
+
+### Files to Create
+- [ ] `src/rilai/runtime/deliberation.py` - Deliberator class
+- [ ] `src/rilai/runtime/argument_graph.py` - ArgumentGraph, ConsensusResult
+
+### Deliberator Features
+- [ ] MAX_ROUNDS = 3 limit
+- [ ] CONSENSUS_THRESHOLD = 0.9 for early exit
+- [ ] Process initial agent outputs
+- [ ] Request focused follow-ups for contested claims
+- [ ] Emit DELIB_ROUND_STARTED/COMPLETED events
+
+### Argument Graph Features
+- [ ] add_claim() with deduplication
+- [ ] Implicit opposition detection
+- [ ] get_opposition_strength() calculation
+- [ ] get_support_strength() calculation
+- [ ] compute_consensus() with type weighting
+- [ ] get_top_claims() by salience
+
+### Verification
+- [ ] Consensus computed correctly
+- [ ] Claims properly linked (supports/opposes)
+- [ ] Early exit on high consensus
+- [ ] Write and run unit tests
+
+### v2 Files to Delete (after verification)
+- [ ] `src/rilai/council/deliberation.py`
+- [ ] `src/rilai/council/collector.py`
+
+### Notes
+_Add any implementation notes, issues, or decisions here:_
+
+---
+
 ## Overview
 
 Deliberation replaces v2's multi-round agent hearing system with a structured claim-based approach. Agents emit atomic claims which are organized into an argument graph with support/oppose relationships.

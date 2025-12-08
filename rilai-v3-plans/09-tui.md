@@ -6,6 +6,55 @@
 
 ---
 
+## Implementation Checklist
+
+> **Instructions:** Mark items with `[x]` when complete. After completing items here,
+> also update the master checklist in `00-overview.md`.
+
+### Files to Create
+- [ ] `src/rilai/ui/__init__.py`
+- [ ] `src/rilai/ui/app.py` - RilaiApp class
+- [ ] `src/rilai/ui/projection.py` - TurnStateProjection, UIUpdate
+- [ ] `src/rilai/ui/panels/__init__.py`
+- [ ] `src/rilai/ui/panels/chat.py` - ChatPanel
+- [ ] `src/rilai/ui/panels/sensors.py` - SensorsPanel
+- [ ] `src/rilai/ui/panels/stance.py` - StancePanel
+- [ ] `src/rilai/ui/panels/agents.py` - AgentsPanel
+- [ ] `src/rilai/ui/panels/activity.py` - ActivityPanel
+- [ ] `src/rilai/ui/panels/critics.py` - CriticsPanel
+
+### Projection Features
+- [ ] apply_event() returns list of UIUpdate
+- [ ] Handle all EventKind types
+- [ ] reset_for_turn() clears transient state
+- [ ] get_agent_summary() for display
+
+### App Features
+- [ ] Compose layout with panels
+- [ ] on_input_submitted handler
+- [ ] _run_turn() streams events
+- [ ] _apply_update() updates widgets
+- [ ] Slash command handling (/help, /clear, /status)
+
+### CLI Update
+- [ ] Update `src/rilai/cli.py` for new TUI
+- [ ] `rilai` command works
+- [ ] `rilai shell` command works
+
+### Verification
+- [ ] TUI starts and renders
+- [ ] Panels update in real-time
+- [ ] Input/output works correctly
+- [ ] Write and run unit tests
+
+### v2 Files to Delete (after verification)
+- [ ] `src/rilai/tui/` (entire folder)
+
+### Notes
+_Add any implementation notes, issues, or decisions here:_
+
+---
+
 ## Overview
 
 The TUI is a pure projection from the event stream. It maintains no independent state - all state is derived from events. This enables:

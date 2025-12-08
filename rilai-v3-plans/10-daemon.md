@@ -6,6 +6,57 @@
 
 ---
 
+## Implementation Checklist
+
+> **Instructions:** Mark items with `[x]` when complete. After completing items here,
+> also update the master checklist in `00-overview.md`.
+
+### Files to Create
+- [ ] `src/rilai/daemon/__init__.py`
+- [ ] `src/rilai/daemon/brain.py` - BrainDaemon class
+- [ ] `src/rilai/daemon/nudges.py` - NudgeChecker class
+- [ ] `src/rilai/daemon/decay.py` - ModulatorDecay class
+
+### BrainDaemon Features
+- [ ] start() / stop() methods
+- [ ] _tick_loop() with configurable interval
+- [ ] _tick() applies decay and checks nudges
+- [ ] Emit DAEMON_TICK events
+- [ ] is_running property
+- [ ] get_status() for diagnostics
+
+### NudgeChecker Features
+- [ ] check_all() returns nudge dict or None
+- [ ] Cooldown tracking per condition
+- [ ] high_stress_silence condition
+- [ ] deadline_approaching condition
+- [ ] rupture_unresolved condition
+- [ ] session_break condition
+- [ ] idle_checkin condition
+
+### ModulatorDecay Features
+- [ ] BASELINES for each modulator
+- [ ] DECAY_RATES for each modulator
+- [ ] apply_decay() returns DecayResult
+- [ ] apply_spike() for external events
+- [ ] get_decay_forecast() for debugging
+
+### TUI Integration
+- [ ] Start daemon on app mount
+- [ ] Stop daemon on app unmount
+- [ ] Handle nudge callback
+
+### Verification
+- [ ] Daemon starts and ticks
+- [ ] Modulators decay correctly
+- [ ] Nudges fire under correct conditions
+- [ ] Write and run unit tests
+
+### Notes
+_Add any implementation notes, issues, or decisions here:_
+
+---
+
 ## Overview
 
 The Brain Daemon runs in the background, independent of user interaction. It:

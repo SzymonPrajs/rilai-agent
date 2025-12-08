@@ -6,6 +6,48 @@
 
 ---
 
+## Implementation Checklist
+
+> **Instructions:** Mark items with `[x]` when complete. After completing items here,
+> also update the master checklist in `00-overview.md`.
+
+### Files to Create
+- [ ] `src/rilai/memory/__init__.py`
+- [ ] `src/rilai/memory/retrieval.py` - MemoryRetriever class
+- [ ] `src/rilai/memory/episodic.py` - EpisodicStore class
+- [ ] `src/rilai/memory/user_model.py` - UserModel class
+- [ ] `src/rilai/memory/consolidation.py` - MemoryConsolidator class
+- [ ] `src/rilai/memory/embeddings.py` - get_embedding, cosine_similarity
+
+### Database Tables
+- [ ] `episodic_events` table with indexes
+- [ ] `user_facts` table with indexes
+- [ ] `user_goals` table with indexes
+
+### Retrieval Features (Stage 2)
+- [ ] get_recent() episodic events
+- [ ] search_similar() with embeddings
+- [ ] get_relevant_facts()
+- [ ] get_open_threads()
+
+### Consolidation Features (Stage 8)
+- [ ] Filter by importance threshold
+- [ ] Store episodic events
+- [ ] Store/update user facts with dedup
+- [ ] Update goal progress
+
+### Verification
+- [ ] Episodic store/retrieve works
+- [ ] User model add/get facts works
+- [ ] Goal management works
+- [ ] Embedding similarity search works
+- [ ] Write and run unit tests
+
+### Notes
+_Add any implementation notes, issues, or decisions here:_
+
+---
+
 ## Overview
 
 The memory system provides:

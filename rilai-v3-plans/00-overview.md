@@ -5,6 +5,143 @@
 
 ---
 
+## MASTER IMPLEMENTATION CHECKLIST
+
+> **IMPORTANT:** After completing any task from any document, update BOTH:
+> 1. The checklist in the specific document (01-11)
+> 2. This master checklist below
+>
+> Mark items with `[x]` when complete. Add date of completion in parentheses.
+
+### Document Progress
+
+- [ ] **01-contracts** - Event schemas and agent contracts
+- [ ] **02-event-store** - EventLogWriter and projections
+- [ ] **03-runtime-core** - TurnRunner and stages
+- [ ] **04-workspace** - Workspace and reducer
+- [ ] **05-agents** - Agent manifests and execution
+- [ ] **06-deliberation** - Claim-based deliberation
+- [ ] **07-council-voice** - Council and voice rendering
+- [ ] **08-memory** - Memory system
+- [ ] **09-tui** - TUI projection
+- [ ] **10-daemon** - Brain daemon
+- [ ] **11-migration** - Migration and cleanup
+
+### Detailed Task Tracking
+
+#### 01-contracts
+- [ ] Create `src/rilai/contracts/__init__.py`
+- [ ] Create `src/rilai/contracts/events.py` (EventKind, EngineEvent)
+- [ ] Create `src/rilai/contracts/agent.py` (AgentOutput, Claim, AgentManifest)
+- [ ] Create `src/rilai/contracts/sensor.py` (SensorOutput)
+- [ ] Create `src/rilai/contracts/workspace.py` (StanceVector, GlobalModulators)
+- [ ] Create `src/rilai/contracts/council.py` (CouncilDecision, SpeechAct)
+- [ ] Create `src/rilai/contracts/memory.py` (MemoryCandidate, EpisodicEvent)
+- [ ] Run tests for contracts
+
+#### 02-event-store
+- [ ] Create `src/rilai/store/__init__.py`
+- [ ] Create `src/rilai/store/event_log.py` (EventLogWriter)
+- [ ] Create `src/rilai/store/projections/__init__.py`
+- [ ] Create `src/rilai/store/projections/base.py`
+- [ ] Create `src/rilai/store/projections/turn_state.py`
+- [ ] Create `src/rilai/store/projections/session.py`
+- [ ] Create `src/rilai/store/projections/analytics.py`
+- [ ] Create `src/rilai/store/projections/debug.py`
+- [ ] Run tests for event store
+- [ ] Delete v2 files: `memory/database.py`, `memory/short_term.py`, `observability/store.py`
+
+#### 03-runtime-core
+- [ ] Create `src/rilai/runtime/__init__.py`
+- [ ] Create `src/rilai/runtime/turn_runner.py`
+- [ ] Create `src/rilai/runtime/stages.py`
+- [ ] Create `src/rilai/runtime/scheduler.py`
+- [ ] Run tests for runtime core
+- [ ] Delete v2 files: `core/engine.py`, `core/events.py`
+
+#### 04-workspace
+- [ ] Create `src/rilai/runtime/workspace.py`
+- [ ] Create `src/rilai/runtime/reducer.py`
+- [ ] Create `src/rilai/runtime/stance.py`
+- [ ] Create `src/rilai/runtime/modulators.py`
+- [ ] Run tests for workspace
+- [ ] Delete v2 files: `core/stance.py`, `core/stance_aggregator.py`, `brain/modulators.py`
+
+#### 05-agents
+- [ ] Create `src/rilai/agents/__init__.py`
+- [ ] Create `src/rilai/agents/manifest.py`
+- [ ] Create `src/rilai/agents/base.py`
+- [ ] Create `src/rilai/agents/executor.py`
+- [ ] Create `src/rilai/agents/registry.py`
+- [ ] Create example agent manifest (stress.yaml + stress.md)
+- [ ] Run tests for agents
+- [ ] Delete v2 files: `agents/protocol.py`, `agents/base.py` (old)
+- [ ] Delete v2 folder: `agencies/`
+
+#### 06-deliberation
+- [ ] Create `src/rilai/runtime/deliberation.py`
+- [ ] Create `src/rilai/runtime/argument_graph.py`
+- [ ] Run tests for deliberation
+- [ ] Delete v2 files: `council/deliberation.py`, `council/collector.py`
+
+#### 07-council-voice
+- [ ] Create `src/rilai/runtime/council.py`
+- [ ] Create `src/rilai/runtime/voice.py`
+- [ ] Create `src/rilai/runtime/critics.py`
+- [ ] Run tests for council and voice
+- [ ] Delete v2 files: `council/pipeline.py`, `council/synthesizer.py`, `council/voice.py`
+
+#### 08-memory
+- [ ] Create `src/rilai/memory/__init__.py`
+- [ ] Create `src/rilai/memory/retrieval.py`
+- [ ] Create `src/rilai/memory/episodic.py`
+- [ ] Create `src/rilai/memory/user_model.py`
+- [ ] Create `src/rilai/memory/consolidation.py`
+- [ ] Create `src/rilai/memory/embeddings.py`
+- [ ] Run tests for memory
+
+#### 09-tui
+- [ ] Create `src/rilai/ui/__init__.py`
+- [ ] Create `src/rilai/ui/app.py`
+- [ ] Create `src/rilai/ui/projection.py`
+- [ ] Create `src/rilai/ui/panels/__init__.py`
+- [ ] Create `src/rilai/ui/panels/chat.py`
+- [ ] Create `src/rilai/ui/panels/sensors.py`
+- [ ] Create `src/rilai/ui/panels/stance.py`
+- [ ] Create `src/rilai/ui/panels/agents.py`
+- [ ] Create `src/rilai/ui/panels/activity.py`
+- [ ] Create `src/rilai/ui/panels/critics.py`
+- [ ] Update `src/rilai/cli.py`
+- [ ] Run tests for TUI
+- [ ] Delete v2 folder: `tui/`
+
+#### 10-daemon
+- [ ] Create `src/rilai/daemon/__init__.py`
+- [ ] Create `src/rilai/daemon/brain.py`
+- [ ] Create `src/rilai/daemon/nudges.py`
+- [ ] Create `src/rilai/daemon/decay.py`
+- [ ] Run tests for daemon
+
+#### 11-migration
+- [ ] Backup v2 to branch
+- [ ] Run database migration script
+- [ ] Create all 49 agent prompts
+- [ ] Delete remaining v2 files
+- [ ] Run full integration tests
+- [ ] Verify all success criteria
+
+### Final Verification
+- [ ] `rilai` command starts TUI with streaming updates
+- [ ] `rilai shell` works with event-sourced pipeline
+- [ ] All panels update in real-time
+- [ ] Event log is replayable
+- [ ] Background daemon emits proactive nudges
+- [ ] Memory retrieval injects context before agents
+- [ ] All 49+ agents output structured JSON
+- [ ] No dual-write - single SQLite event log
+
+---
+
 ## 1. Hard Invariants (Rules That Must Never Be Broken)
 
 ### Invariant A: One Turn = One Ordered Stream
