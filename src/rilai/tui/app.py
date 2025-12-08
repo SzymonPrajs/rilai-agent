@@ -4,9 +4,12 @@ Split-screen layout with conversation panel and cognitive state inspector.
 Based on Industrial/Neuroscience Dashboard aesthetic.
 """
 
+import logging
+import platform
+import subprocess
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Literal, Optional
 
 from textual import on
 from textual.app import App, ComposeResult
@@ -22,6 +25,8 @@ from .widgets import (
 from rilai.core.engine import Engine
 from rilai.core.events import event_bus, Event, EventType
 from rilai.core.turn_state import TurnState
+
+logger = logging.getLogger(__name__)
 
 
 class RilaiApp(App):
@@ -207,6 +212,7 @@ class RilaiApp(App):
         event_bus.subscribe(EventType.AGENCY_STARTED, self._handle_agency_started)
         event_bus.subscribe(EventType.AGENCY_COMPLETED, self._handle_agency_completed)
         event_bus.subscribe(EventType.AGENT_COMPLETED, self._handle_agent_completed)
+        event_bus.subscribe(EventType.PROACTIVE_MESSAGE, self._handle_proactive_message)
 
         # Focus the chat input
         if self._chat_panel:
@@ -216,6 +222,9 @@ class RilaiApp(App):
         self.show_system_message(
             "Welcome to Rilai v2. Type a message or use `/help` for commands."
         )
+
+        # Show any pending L2 nudges from previous sessions
+        await self._show_pending_nudges()
 
     @on(ChatInput.ChatSubmitted)
     async def on_chat_submitted(self, event: ChatInput.ChatSubmitted) -> None:
@@ -376,9 +385,99 @@ class RilaiApp(App):
             self._thinking.add_thinking(agent_id, thinking, voice, deliberation_round)
 
     def on_proactive_message(self, message: str, urgency: str) -> None:
-        """Handle proactive message from daemon."""
+        """Handle proactive message from daemon (legacy)."""
         if not self.quiet_mode and self._chat_panel:
             self._chat_panel.add_message("assistant", message, urgency=urgency)
+
+    def show_nudge(
+        self,
+        message: str,
+        level: Literal["on_open", "nudge", "urgent"] = "nudge",
+        item_id: str | None = None,
+    ) -> None:
+        """Show a proactive nudge in the chat panel.
+
+        Args:
+            message: Nudge message content
+            level: Intervention level (on_open, nudge, urgent)
+            item_id: Optional item ID for tracking
+        """
+        if self.quiet_mode:
+            logger.debug(f"Nudge suppressed (quiet mode): {message[:50]}...")
+            return
+
+        if self._chat_panel:
+            self._chat_panel.add_nudge(message, level, item_id=item_id)
+
+    async def _show_pending_nudges(self) -> None:
+        """Show pending L2 (on-open) nudges from previous sessions.
+
+        Called on mount to display any queued items.
+        """
+        try:
+            # Import here to avoid circular imports
+            from rilai.proactive.store import ProactiveStore
+            from pathlib import Path
+
+            # Get data directory from engine or use default
+            data_dir = Path.home() / ".rilai" / "data"
+            if not data_dir.exists():
+                return
+
+            store = ProactiveStore(data_dir)
+            items = store.get_on_open_items()
+
+            if not items:
+                return
+
+            # Show each pending nudge
+            for item in items:
+                self.show_nudge(
+                    item.message,
+                    level="on_open",
+                    item_id=item.item_id,
+                )
+                # Mark as delivered
+                store.mark_delivered(item.item_id)
+
+            logger.info(f"Displayed {len(items)} pending on-open nudges")
+
+        except ImportError:
+            logger.debug("Proactive store not available")
+        except Exception as e:
+            logger.warning(f"Failed to load pending nudges: {e}")
+
+    async def _send_system_notification(
+        self,
+        message: str,
+        title: str = "Rilai",
+    ) -> None:
+        """Send a macOS system notification.
+
+        Args:
+            message: Notification message
+            title: Notification title
+        """
+        if platform.system() != "Darwin":
+            logger.debug("System notifications only supported on macOS")
+            return
+
+        try:
+            # Escape quotes in message and title
+            safe_message = message.replace('"', '\\"')
+            safe_title = title.replace('"', '\\"')
+
+            script = f'display notification "{safe_message}" with title "{safe_title}"'
+            subprocess.run(
+                ["osascript", "-e", script],
+                capture_output=True,
+                timeout=5,
+            )
+            logger.info(f"System notification sent: {message[:50]}...")
+        except subprocess.TimeoutExpired:
+            logger.warning("System notification timed out")
+        except Exception as e:
+            logger.error(f"Failed to send system notification: {e}")
 
     def open_agent_detail(self, agent_id: str) -> None:
         """Open the agent detail screen for a specific agent."""
@@ -407,6 +506,37 @@ class RilaiApp(App):
         deliberation_round = event.data.get("deliberation_round")
         if thinking or voice:
             self.on_thinking_received(agent_id, thinking, voice, deliberation_round)
+
+    async def _handle_proactive_message(self, event: Event) -> None:
+        """Handle PROACTIVE_MESSAGE event from event bus.
+
+        Displays nudges based on their intervention level:
+        - L2 (on_open): Subtle inline display
+        - L3 (nudge): Real-time inline nudge
+        - L4 (urgent): Inline nudge + system notification
+        """
+        message = event.data.get("message", "")
+        level_value = event.data.get("level", 3)
+        item_id = event.data.get("item_id")
+        method = event.data.get("method", "inline")
+
+        if not message:
+            return
+
+        # Map level value to level string
+        level_map = {
+            2: "on_open",
+            3: "nudge",
+            4: "urgent",
+        }
+        level = level_map.get(level_value, "nudge")
+
+        # Display the nudge
+        self.show_nudge(message, level=level, item_id=item_id)
+
+        # For urgent (L4), also send system notification
+        if level_value >= 4 and method == "notification":
+            await self._send_system_notification(message)
 
     async def on_unmount(self) -> None:
         """Handle app unmount - cleanup engine."""

@@ -4,10 +4,11 @@ Provides:
 - MessageLog: Scrolling message display
 - ChatInput: Text input with slash command support
 - ChatPanel: Container combining both
+- NudgeMessage: Proactive nudge display with distinct styling
 """
 
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from rich.markdown import Markdown
 from rich.text import Text
@@ -20,6 +21,9 @@ from textual.widgets import Input, Static
 
 if TYPE_CHECKING:
     from rilai.tui.app import RilaiApp
+
+# Intervention level type for nudges
+NudgeLevel = Literal["on_open", "nudge", "urgent"]
 
 
 class ChatMessage(Static):
@@ -61,6 +65,91 @@ class ChatMessage(Static):
         yield Static(Markdown(self.content), classes="message-content")
 
 
+class NudgeMessage(Static):
+    """A proactive nudge message with distinct styling.
+
+    Nudges are displayed differently based on their intervention level:
+    - L2 (on_open): Subtle, shown when TUI opens
+    - L3 (nudge): Real-time inline nudge
+    - L4 (urgent): Urgent interruption with warning styling
+    """
+
+    DEFAULT_CSS = """
+    NudgeMessage {
+        background: $surface-darken-1;
+        border-left: thick $warning;
+        padding: 1 2;
+        margin: 1 0;
+    }
+
+    NudgeMessage.on_open {
+        border-left: thick $primary;
+        color: $text-muted;
+    }
+
+    NudgeMessage.nudge {
+        border-left: thick $warning;
+    }
+
+    NudgeMessage.urgent {
+        border-left: thick $error;
+        background: $error 10%;
+    }
+
+    NudgeMessage .nudge-header {
+        text-style: bold;
+        margin-bottom: 0;
+    }
+
+    NudgeMessage .nudge-content {
+        padding-left: 0;
+    }
+
+    NudgeMessage .nudge-meta {
+        color: $text-muted;
+        text-style: italic;
+    }
+    """
+
+    def __init__(
+        self,
+        content: str,
+        level: NudgeLevel = "nudge",
+        timestamp: datetime | None = None,
+        item_id: str | None = None,
+    ):
+        super().__init__()
+        self.content = content
+        self.level = level
+        self.timestamp = timestamp or datetime.now()
+        self.item_id = item_id
+        self.add_class(level)
+
+    def compose(self) -> ComposeResult:
+        """Render the nudge message."""
+        time_str = self.timestamp.strftime("%H:%M")
+
+        # Level-specific header styling
+        level_icons = {
+            "on_open": "💭",
+            "nudge": "💡",
+            "urgent": "⚠️",
+        }
+        level_labels = {
+            "on_open": "Thought",
+            "nudge": "Nudge",
+            "urgent": "Important",
+        }
+
+        icon = level_icons.get(self.level, "💡")
+        label = level_labels.get(self.level, "Nudge")
+
+        header = Text(f"{icon} {label}", style="bold")
+        yield Static(header, classes="nudge-header")
+        yield Static(Markdown(self.content), classes="nudge-content")
+        yield Static(Text(f"[{time_str}]", style="dim"), classes="nudge-meta")
+
+
 class MessageLog(ScrollableContainer):
     """Scrollable container for chat messages."""
 
@@ -100,6 +189,26 @@ class MessageLog(ScrollableContainer):
         msg = ChatMessage(role, content, timestamp, urgency)
         self._messages.append(msg)
         self.mount(msg)
+        self.scroll_end(animate=False)
+
+    def add_nudge(
+        self,
+        content: str,
+        level: NudgeLevel = "nudge",
+        timestamp: datetime | None = None,
+        item_id: str | None = None,
+    ) -> None:
+        """Add a proactive nudge to the log.
+
+        Args:
+            content: Nudge message content
+            level: Intervention level (on_open, nudge, urgent)
+            timestamp: Optional timestamp
+            item_id: Optional item ID for tracking
+        """
+        nudge = NudgeMessage(content, level, timestamp, item_id)
+        self._messages.append(nudge)
+        self.mount(nudge)
         self.scroll_end(animate=False)
 
     def clear_messages(self) -> None:
@@ -239,6 +348,24 @@ class ChatPanel(Vertical):
         """Add a message to the log."""
         if self.message_log:
             self.message_log.add_message(role, content, timestamp, urgency)
+
+    def add_nudge(
+        self,
+        content: str,
+        level: NudgeLevel = "nudge",
+        timestamp: datetime | None = None,
+        item_id: str | None = None,
+    ) -> None:
+        """Add a proactive nudge to the log.
+
+        Args:
+            content: Nudge message content
+            level: Intervention level (on_open, nudge, urgent)
+            timestamp: Optional timestamp
+            item_id: Optional item ID for tracking
+        """
+        if self.message_log:
+            self.message_log.add_nudge(content, level, timestamp, item_id)
 
     def clear_messages(self) -> None:
         """Clear all messages."""

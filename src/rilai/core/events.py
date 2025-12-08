@@ -48,6 +48,35 @@ class EventType(Enum):
     DAEMON_WATCHER_ALERT = auto()
     PROACTIVE_MESSAGE = auto()
 
+    # Audio capture events (ambient mode)
+    AUDIO_CAPTURE_STARTED = auto()
+    AUDIO_CAPTURE_STOPPED = auto()
+    SPEECH_DETECTED = auto()
+    SPEECH_ENDED = auto()
+    TRANSCRIPT_SEGMENT = auto()
+
+    # Episode events
+    EPISODE_STARTED = auto()
+    EPISODE_COMPLETED = auto()
+    EPISODE_BOUNDARY = auto()
+
+    # Ambient mode events
+    MODE_TRANSITION = auto()
+    STAKES_UPDATED = auto()
+    COMMITMENT_EXTRACTED = auto()
+    DECISION_DETECTED = auto()
+
+    # Hypothesis events (daydream mode)
+    HYPOTHESIS_GENERATED = auto()
+    HYPOTHESIS_VALIDATED = auto()
+    HYPOTHESIS_INVALIDATED = auto()
+
+    # Proactive nudge events
+    NUDGE_PREPARED = auto()
+    NUDGE_DELIVERED = auto()
+    NUDGE_SUPPRESSED = auto()
+    NUDGE_DISMISSED = auto()
+
     # System events
     SESSION_STARTED = auto()
     SESSION_ENDED = auto()

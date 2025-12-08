@@ -7,11 +7,14 @@ that all downstream modules receive after Pass 1 completes.
 The workspace packet is built by the workspace builder (medium tier) and then
 broadcast to all focused generators in Pass 2. This ensures global coherence
 through reentrant conditioning.
+
+Extended with AmbientContext for ambient cognitive processing mode.
 """
 
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import Literal, Optional
 
 from rilai.core.stance import StanceVector
 
@@ -88,6 +91,205 @@ class RelationshipSummary:
     key_hypotheses: list[Hypothesis] = field(default_factory=list)
 
 
+# ============================================================================
+# AMBIENT CONTEXT TYPES
+# ============================================================================
+
+
+@dataclass
+class Commitment:
+    """A commitment or TODO extracted from ambient stream."""
+
+    id: str
+    text: str
+    deadline: datetime | None = None
+    status: Literal["open", "completed", "abandoned", "delegated"] = "open"
+    evidence_id: str = ""  # Link to source evidence
+    confidence: float = 0.5
+    extracted_at: datetime = field(default_factory=datetime.now)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "text": self.text,
+            "deadline": self.deadline.isoformat() if self.deadline else None,
+            "status": self.status,
+            "evidence_id": self.evidence_id,
+            "confidence": self.confidence,
+            "extracted_at": self.extracted_at.isoformat(),
+        }
+
+
+@dataclass
+class Decision:
+    """An unresolved decision detected in ambient stream."""
+
+    id: str
+    topic: str
+    options: list[str] = field(default_factory=list)
+    user_leaning: str | None = None
+    evidence_ids: list[str] = field(default_factory=list)
+    extracted_at: datetime = field(default_factory=datetime.now)
+    resolution: str | None = None  # Filled when resolved
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "topic": self.topic,
+            "options": self.options,
+            "user_leaning": self.user_leaning,
+            "evidence_ids": self.evidence_ids,
+            "extracted_at": self.extracted_at.isoformat(),
+            "resolution": self.resolution,
+        }
+
+
+@dataclass
+class PendingNudge:
+    """A nudge waiting to be delivered."""
+
+    id: str
+    nudge_type: str  # reminder, reflection_prompt, connection, celebration
+    message: str
+    evidence_chain: list[str] = field(default_factory=list)
+    confidence: float = 0.5
+    level: int = 1  # 0-4 proactive ladder level
+    created_at: datetime = field(default_factory=datetime.now)
+    expires_at: datetime | None = None
+    delivered: bool = False
+    delivered_at: datetime | None = None
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "nudge_type": self.nudge_type,
+            "message": self.message,
+            "evidence_chain": self.evidence_chain,
+            "confidence": self.confidence,
+            "level": self.level,
+            "created_at": self.created_at.isoformat(),
+            "expires_at": self.expires_at.isoformat() if self.expires_at else None,
+            "delivered": self.delivered,
+            "delivered_at": self.delivered_at.isoformat() if self.delivered_at else None,
+        }
+
+
+@dataclass
+class AmbientContext:
+    """Context from ambient mode processing.
+
+    Contains:
+    - Episode tracking (current episode state)
+    - Stakes tracking (rolling stakes estimates)
+    - Open loops (commitments, decisions)
+    - Daydream state (hypotheses, pending nudges)
+    """
+
+    # Episode tracking
+    current_episode_id: str = ""
+    episode_started_at: datetime | None = None
+    episode_summary: str = ""
+
+    # Stakes tracking
+    current_stakes: float = 0.0
+    stakes_history: list[tuple[datetime, float]] = field(default_factory=list)
+    stakes_trend: Literal["rising", "stable", "falling"] = "stable"
+
+    # Open loops
+    active_commitments: list[Commitment] = field(default_factory=list)
+    unresolved_decisions: list[Decision] = field(default_factory=list)
+    recent_closures: list[str] = field(default_factory=list)  # IDs of recently resolved
+
+    # Daydream state
+    active_hypotheses: list[Hypothesis] = field(default_factory=list)
+    hypothesis_evidence_map: dict[str, list[str]] = field(default_factory=dict)
+    pending_verifications: list[str] = field(default_factory=list)
+
+    # Proactive state
+    pending_nudges: list[PendingNudge] = field(default_factory=list)
+    last_nudge_delivered: datetime | None = None
+    nudge_cooldown_until: datetime | None = None
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for serialization."""
+        return {
+            "current_episode_id": self.current_episode_id,
+            "episode_started_at": (
+                self.episode_started_at.isoformat() if self.episode_started_at else None
+            ),
+            "episode_summary": self.episode_summary,
+            "current_stakes": self.current_stakes,
+            "stakes_history": [
+                (ts.isoformat(), stakes) for ts, stakes in self.stakes_history[-10:]
+            ],
+            "stakes_trend": self.stakes_trend,
+            "active_commitments": [c.to_dict() for c in self.active_commitments],
+            "unresolved_decisions": [d.to_dict() for d in self.unresolved_decisions],
+            "recent_closures": self.recent_closures,
+            "active_hypotheses": [
+                {"h_id": h.h_id, "text": h.text, "p": h.p, "evidence_ids": h.evidence_ids}
+                for h in self.active_hypotheses
+            ],
+            "hypothesis_evidence_map": self.hypothesis_evidence_map,
+            "pending_verifications": self.pending_verifications,
+            "pending_nudges": [n.to_dict() for n in self.pending_nudges],
+            "last_nudge_delivered": (
+                self.last_nudge_delivered.isoformat() if self.last_nudge_delivered else None
+            ),
+            "nudge_cooldown_until": (
+                self.nudge_cooldown_until.isoformat() if self.nudge_cooldown_until else None
+            ),
+        }
+
+    def update_stakes(self, stakes: float) -> None:
+        """Update stakes and compute trend."""
+        now = datetime.now()
+        self.stakes_history.append((now, stakes))
+
+        # Keep last 10 entries
+        if len(self.stakes_history) > 10:
+            self.stakes_history = self.stakes_history[-10:]
+
+        # Compute trend
+        if len(self.stakes_history) >= 3:
+            recent = [s for _, s in self.stakes_history[-3:]]
+            if recent[-1] > recent[0] + 0.1:
+                self.stakes_trend = "rising"
+            elif recent[-1] < recent[0] - 0.1:
+                self.stakes_trend = "falling"
+            else:
+                self.stakes_trend = "stable"
+
+        self.current_stakes = stakes
+
+    def add_commitment(self, commitment: Commitment) -> None:
+        """Add an active commitment."""
+        self.active_commitments.append(commitment)
+
+    def add_decision(self, decision: Decision) -> None:
+        """Add an unresolved decision."""
+        self.unresolved_decisions.append(decision)
+
+    def add_nudge(self, nudge: PendingNudge) -> None:
+        """Add a pending nudge."""
+        self.pending_nudges.append(nudge)
+
+    def get_high_confidence_hypotheses(self, threshold: float = 0.7) -> list[Hypothesis]:
+        """Get hypotheses above confidence threshold."""
+        return [h for h in self.active_hypotheses if h.p >= threshold]
+
+    def get_urgent_commitments(self) -> list[Commitment]:
+        """Get commitments with upcoming deadlines."""
+        now = datetime.now()
+        urgent = []
+        for c in self.active_commitments:
+            if c.status == "open" and c.deadline:
+                hours_until = (c.deadline - now).total_seconds() / 3600
+                if hours_until < 24:
+                    urgent.append(c)
+        return urgent
+
+
 @dataclass
 class WorkspacePacket:
     """
@@ -131,6 +333,9 @@ class WorkspacePacket:
     # Processing metadata
     sensor_disagreement: float = 0.0  # Std dev of sensor ensemble
     regen_attempts: int = 0
+
+    # Ambient context (populated in ambient mode)
+    ambient: Optional[AmbientContext] = None
 
     def to_dict(self) -> dict:
         """Convert to dictionary for serialization and prompt injection."""
@@ -179,6 +384,7 @@ class WorkspacePacket:
             "escalation_reason": self.escalation_reason,
             "sensor_disagreement": self.sensor_disagreement,
             "regen_attempts": self.regen_attempts,
+            "ambient": self.ambient.to_dict() if self.ambient else None,
         }
 
     def to_prompt_context(self) -> str:
@@ -225,6 +431,23 @@ class WorkspacePacket:
 
         if self.relationship_summary and self.relationship_summary.summary:
             lines.extend(["", f"Relationship: {self.relationship_summary.summary}"])
+
+        # Ambient context
+        if self.ambient:
+            lines.extend(["", "Ambient Context:"])
+            lines.append(f"  Stakes: {self.ambient.current_stakes:.2f} ({self.ambient.stakes_trend})")
+
+            if self.ambient.active_commitments:
+                lines.append(f"  Open commitments: {len(self.ambient.active_commitments)}")
+                urgent = self.ambient.get_urgent_commitments()
+                if urgent:
+                    lines.append(f"  URGENT ({len(urgent)}): {urgent[0].text[:50]}...")
+
+            if self.ambient.unresolved_decisions:
+                lines.append(f"  Pending decisions: {len(self.ambient.unresolved_decisions)}")
+
+            if self.ambient.pending_nudges:
+                lines.append(f"  Pending nudges: {len(self.ambient.pending_nudges)}")
 
         return "\n".join(lines)
 
